@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "789287385004",
+    "project_id": "absentapp-64daf",
+    "storage_bucket": "absentapp-64daf.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:789287385004:android:66dc74c0c4cd77ec82ec09",
+        "android_client_info": {
+          "package_name": "com.example.absentapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDDgzWeuMNGUKbxFIjRsnNRSM1ue3vWlTo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:789287385004:android:aad28d1fc553af1782ec09",
+        "android_client_info": {
+          "package_name": "com.example.fingerprint"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDDgzWeuMNGUKbxFIjRsnNRSM1ue3vWlTo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
