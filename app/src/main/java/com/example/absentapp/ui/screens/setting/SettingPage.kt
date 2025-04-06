@@ -70,6 +70,18 @@ fun SettingPage(authViewModel: AuthViewModel, navController: NavController) {
         }) {
             Text("Logout")
         }
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = {
+                authViewModel.deleteAllAbsenceHistory()
+            },
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Hapus Semua Riwayat Absensi", color = Color.White)
+        }
+
     }
 }
 

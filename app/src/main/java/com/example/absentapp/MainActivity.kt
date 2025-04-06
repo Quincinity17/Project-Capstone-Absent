@@ -7,9 +7,11 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -18,12 +20,17 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.core.app.ActivityCompat
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.lifecycle.lifecycleScope
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.example.absentapp.auth.AuthViewModel
+import com.example.absentapp.data.dataStore.JadwalCachePreference
+import com.example.absentapp.data.dataStore.helper.jadwalDataStore
 import com.example.absentapp.location.LocationBridge
 import com.example.absentapp.location.LocationService
 import com.example.absentapp.location.LocationViewModel
@@ -31,6 +38,13 @@ import com.example.absentapp.navigation.MyAppNavigation
 import com.example.absentapp.ui.screens.camera.CameraViewModel
 import com.example.absentapp.ui.theme.AbsentAppTheme
 import com.example.absentapp.worker.ReminderWorker
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import java.time.LocalTime
+import java.time.temporal.ChronoUnit
+import java.util.Date
 import java.util.concurrent.TimeUnit
 
 /**
@@ -45,6 +59,15 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge() // Mengaktifkan edge-to-edge layout agar UI bisa penuh ke seluruh layar
+
+
+
+        lifecycleScope.launch {
+            syncJadwalFromFirestore(applicationContext)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                cekSelisihWaktuMasuk()
+            }
+        }
 
         // Inisialisasi ViewModel yang digunakan di seluruh aplikasi
         val authViewModel = AuthViewModel()         // Untuk login & autentikasi
@@ -158,5 +181,36 @@ class MainActivity : ComponentActivity() {
 //            request
 //        )
     }
+    fun syncJadwalFromFirestore(context: Context) {
+        val firestore = FirebaseFirestore.getInstance()
+        val dataStore = context.jadwalDataStore
+
+        firestore.collection("jadwal").get().addOnSuccessListener { snapshot ->
+            CoroutineScope(Dispatchers.IO).launch {
+                dataStore.edit { prefs ->
+                    snapshot.documents.forEach { doc ->
+                        val hari = doc.getString("hari")?.lowercase() ?: return@forEach
+                        val jamMasuk = doc.getString("jamMasuk") ?: "07:00"
+                        prefs[stringPreferencesKey("jam_masuk_$hari")] = jamMasuk
+                    }
+                }
+            }
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private suspend fun cekSelisihWaktuMasuk() {
+        val jadwalPref = JadwalCachePreference(this)
+        val waktuMasukString = jadwalPref.getJamMasukForToday() // misal: "07:30"
+
+        val waktuMasuk = LocalTime.parse(waktuMasukString)
+        val now = LocalTime.now()
+        val selisih = ChronoUnit.MINUTES.between(now, waktuMasuk)
+        val hari = android.text.format.DateFormat.format("EEEE", Date()).toString()
+
+        Log.d("klepon", "Hari ini: $hari | Jam masuk: $waktuMasuk | Sekarang: $now | Selisih: $selisih menit")
+    }
+
+
 
 }

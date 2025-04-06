@@ -4,8 +4,10 @@ import android.graphics.Bitmap
 import android.util.Log
 import androidx.camera.core.CameraSelector
 import androidx.camera.view.LifecycleCameraController
-import androidx.compose.foundation.background
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -14,10 +16,22 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.*
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.drawscope.Fill
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.foundation.layout.BoxWithConstraints
+
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.absentapp.R
@@ -35,17 +49,15 @@ fun CameraPage(
     scope: CoroutineScope,
     takePhoto: (onPhotoTaken: (Bitmap) -> Unit) -> Unit,
     authViewModel: AuthViewModel,
-    navController: NavController // ⬅️ ditambahkan
+    navController: NavController
 ) {
     val bitmaps by viewModel.bitmaps.collectAsState()
     var previewBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var showPreviewDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
-    // ✅ Observe auth state untuk navigasi
     val authState by authViewModel.authState.observeAsState()
 
-    // ✅ Navigasi otomatis setelah absen sukses
     LaunchedEffect(authState) {
         if (authState is AuthState.Success) {
             Log.d("Klepon", "✅ Absen sukses: ${authState}")
@@ -53,6 +65,7 @@ fun CameraPage(
                 popUpTo("camera") { inclusive = true }
             }
         }
+        controller.cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
     }
 
     BottomSheetScaffold(
@@ -77,70 +90,89 @@ fun CameraPage(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            // Preview Kamera
             CameraPreview(
                 controller = controller,
                 modifier = Modifier.fillMaxSize()
             )
 
-            // Tombol switch kamera
+            ViewfinderOverlay(
+                widthPercent = 0.7f,
+                heightPercent = 0.6f,
+                verticalOffsetPercent = -0.05f // geser 10% ke atas
+            )
+
+
             IconButton(
                 onClick = {
-                    controller.cameraSelector =
-                        if (controller.cameraSelector == CameraSelector.DEFAULT_BACK_CAMERA)
-                            CameraSelector.DEFAULT_FRONT_CAMERA
-                        else CameraSelector.DEFAULT_BACK_CAMERA
+                    navController.popBackStack()
                 },
                 modifier = Modifier
-                    .padding(24.dp)
+                    .padding(16.dp)
                     .align(Alignment.TopStart)
-                    .size(72.dp)
+                    .size(64.dp)
             ) {
                 Icon(
-                    painter = painterResource(id = R.drawable.ic_switch_camera),
-                    contentDescription = "Switch Camera",
-                    tint = Color.Unspecified
+                    painter = painterResource(id = R.drawable.ic_close),
+                    contentDescription = "Back",
+                    tint = Color.White
                 )
             }
 
-            // Tombol Kamera & Galeri
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.BottomCenter)
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceAround
+            Box(
+                modifier = Modifier.align(Alignment.BottomCenter)
             ) {
-                IconButton(
-                    onClick = {
-                        takePhoto { bitmap ->
-                            previewBitmap = bitmap
-                            showPreviewDialog = true
-                            Log.d("Klepon", "📸 Tombol kamera ditekan")
-                            authViewModel.absenWithPhoto(bitmap, context)
-                        }
-                    },
-                    modifier = Modifier.size(72.dp)
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
                 ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_camera),
-                        contentDescription = "Take Photo",
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+                            .padding(horizontal = 12.dp, vertical = 6.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_info),
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(20.dp)
+                        )
 
-                IconButton(
-                    onClick = { scope.launch { scaffoldState.bottomSheetState.expand() } },
-                    modifier = Modifier.size(64.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_galery),
-                        contentDescription = "Open Gallery"
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        Text(
+                            text = "Ambil selfie sebagai bukti kehadiran di lokasi",
+                            color = Color.White,
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    CameraBottomBar(
+                        previewBitmap = previewBitmap,
+                        onOpenGallery = {
+                            scope.launch { scaffoldState.bottomSheetState.expand() }
+                        },
+                        onTakePhoto = {
+                            takePhoto { bitmap ->
+                                previewBitmap = bitmap
+                                showPreviewDialog = true
+                                authViewModel.absenWithPhoto(bitmap, context)
+                            }
+                        },
+                        onSwitchCamera = {
+                            controller.cameraSelector =
+                                if (controller.cameraSelector == CameraSelector.DEFAULT_BACK_CAMERA)
+                                    CameraSelector.DEFAULT_FRONT_CAMERA
+                                else CameraSelector.DEFAULT_BACK_CAMERA
+                        }
                     )
                 }
             }
 
-            // 📸 Popup Preview Foto
             if (showPreviewDialog && previewBitmap != null) {
                 AlertDialog(
                     onDismissRequest = { showPreviewDialog = false },
@@ -171,5 +203,120 @@ fun CameraPage(
                 )
             }
         }
+    }
+}
+
+@Composable
+fun ViewfinderOverlay(
+    modifier: Modifier = Modifier,
+    widthPercent: Float,  // 80% dari lebar layar
+    heightPercent: Float, // 50% dari tinggi layar
+    verticalOffsetPercent: Float = 0f,
+    cornerRadius: Dp = 24.dp
+) {
+    BoxWithConstraints(modifier = modifier.fillMaxSize()) {
+        val canvasWidth = with(LocalDensity.current) { maxWidth.toPx() }
+        val canvasHeight = with(LocalDensity.current) { maxHeight.toPx() }
+        val cornerRadiusPx = with(LocalDensity.current) { cornerRadius.toPx() }
+
+        val holeWidthPx = canvasWidth * widthPercent
+        val holeHeightPx = canvasHeight * heightPercent
+        val verticalOffsetPx = canvasHeight * verticalOffsetPercent
+
+        val left = (canvasWidth - holeWidthPx) / 2f
+        val top = (canvasHeight - holeHeightPx) / 2f + verticalOffsetPx
+
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            drawRect(color = Color.Black.copy(alpha = 0.5f))
+
+            drawRoundRect(
+                color = Color.Transparent,
+                topLeft = Offset(left, top),
+                size = Size(holeWidthPx, holeHeightPx),
+                cornerRadius = CornerRadius(cornerRadiusPx, cornerRadiusPx),
+                blendMode = BlendMode.Clear
+            )
+        }
+    }
+}
+
+
+
+
+@Composable
+fun CameraBottomBar(
+    previewBitmap: Bitmap?,
+    onOpenGallery: () -> Unit,
+    onTakePhoto: () -> Unit,
+    onSwitchCamera: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 24.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        IconButton(
+            onClick = onOpenGallery,
+            modifier = Modifier
+                .size(56.dp)
+                .clip(RoundedCornerShape(12.dp))
+        ) {
+            if (previewBitmap != null) {
+                Image(
+                    bitmap = previewBitmap.asImageBitmap(),
+                    contentDescription = "Last Photo",
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_flash),
+                    contentDescription = "Open Gallery",
+                    tint = Color.White
+                )
+            }
+        }
+
+        IconButton(
+            onClick = onTakePhoto,
+            modifier = Modifier
+                .size(84.dp)
+                .clip(RoundedCornerShape(42.dp))
+                .background(Color.White)
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_circle),
+                contentDescription = "Take Photo",
+                modifier = Modifier.size(80.dp),
+                tint = Color.Black
+            )
+        }
+
+        IconButton(
+            onClick = onSwitchCamera,
+            modifier = Modifier
+                .size(56.dp)
+                .clip(RoundedCornerShape(12.dp))
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_switch),
+                contentDescription = "Switch Camera",
+                tint = Color.White
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun CameraBottomBarPreview() {
+    Box(modifier = Modifier.background(Color.Transparent)) {
+        CameraBottomBar(
+            previewBitmap = null,
+            onOpenGallery = {},
+            onTakePhoto = {},
+            onSwitchCamera = {},
+        )
     }
 }

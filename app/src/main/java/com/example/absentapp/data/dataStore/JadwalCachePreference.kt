@@ -1,14 +1,17 @@
 package com.example.absentapp.data.dataStore
 
 import android.content.Context
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.example.absentapp.data.model.Jadwal
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-
-val Context.jadwalDataStore by preferencesDataStore(name = "jadwal_cache")
+import java.time.LocalDate
+import com.example.absentapp.data.dataStore.helper.jadwalDataStore
 
 class JadwalCachePreference(private val context: Context) {
 
@@ -35,6 +38,15 @@ class JadwalCachePreference(private val context: Context) {
             preferences[JAM_KELUAR_KEY] = jadwal.jamKeluar
         }
     }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    suspend fun getJamMasukForToday(): String {
+        val hari = LocalDate.now().dayOfWeek.name.lowercase()
+        val key = stringPreferencesKey("jam_masuk_$hari")
+        val prefs = context.jadwalDataStore.data.first()
+        return prefs[key] ?: "07:30"
+    }
+
 
     suspend fun clearJadwal() {
         context.jadwalDataStore.edit { it.clear() }

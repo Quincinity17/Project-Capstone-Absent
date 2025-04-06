@@ -12,12 +12,16 @@ import androidx.datastore.preferences.preferencesDataStore
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.example.absentapp.R
+import com.example.absentapp.data.dataStore.JadwalCachePreference
 import com.google.firebase.auth.FirebaseAuth
+import com.example.absentapp.data.dataStore.helper.dataStore
+
 import kotlinx.coroutines.flow.first
+import java.time.Instant
 import java.time.LocalTime
 import java.time.temporal.ChronoUnit
+import java.util.Date
 
-val Context.dataStore by preferencesDataStore(name = "settings")
 val NOTIFICATION_ENABLED_KEY = booleanPreferencesKey("notification_enabled")
 
 class ReminderWorker(
@@ -27,36 +31,34 @@ class ReminderWorker(
 
     @RequiresApi(Build.VERSION_CODES.O)
     override suspend fun doWork(): Result {
-        Log.d("Rendang", "doWork() DIPANGGIL 🚀")
-
-        val batasAbsen = LocalTime.now().plusMinutes(10)
-        val now = LocalTime.now()
-        val selisih = ChronoUnit.MINUTES.between(now, batasAbsen)
-
-        Log.d("Rendang", "Waktu sekarang: $now")
-        Log.d("Rendang", "Batas absen: $batasAbsen")
-        Log.d("Rendang", "Selisih menit: $selisih")
-
-
         val preferences = context.dataStore.data.first()
         val isReminderEnabled = preferences[NOTIFICATION_ENABLED_KEY] ?: true
+        if (!isReminderEnabled) return Result.success()
 
-        Log.d("Rendang", "isReminderEnabled: $isReminderEnabled")
+        val jadwalPref = JadwalCachePreference(applicationContext)
+        val waktuMasukString = jadwalPref.getJamMasukForToday() // contoh: "07:30"
 
-        if (isReminderEnabled && selisih in 8..10) {
-            Log.d("Rendang", ">> Kondisi terpenuhi! Menampilkan notifikasi")
+        val waktuMasuk = LocalTime.parse(waktuMasukString)
+
+        val now = LocalTime.now()
+
+        val selisih = ChronoUnit.MINUTES.between(now, waktuMasuk)
+
+        val hari = android.text.format.DateFormat.format("EEEE", Date()).toString()
+
+        Log.d("klepon", "Hari ini: $hari | Jam masuk: $waktuMasuk | Sekarang: $now | Selisih: $selisih menit")
+
+        if (selisih in 8..10) {
             showNotification()
         } else {
-            Log.d("Rendang", ">> Kondisi TIDAK terpenuhi, notifikasi TIDAK ditampilkan")
+            Log.d("Reminder", "Kondisi tidak terpenuhi, notifikasi tidak ditampilkan.")
         }
-
 
         return Result.success()
     }
 
-    private fun showNotification() {
-        Log.d("Rendang", ">> Notifikasi dikirim!")
 
+    private fun showNotification() {
         val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val channelId = "reminder"
 

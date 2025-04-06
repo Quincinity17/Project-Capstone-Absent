@@ -199,6 +199,27 @@ class AuthViewModel : ViewModel() {
         _authState.value = AuthState.Unauthenticated
     }
 
+    fun deleteAllAbsenceHistory() {
+        Log.d("DeleteAbsensi", "kepanggil")
+
+        val userId = auth.currentUser?.uid
+        if (userId != null) {
+            firestore.collection("absensi")
+                .whereEqualTo("uid", userId)
+                .get()
+                .addOnSuccessListener { documents ->
+                    for (document in documents) {
+                        firestore.collection("absensi").document(document.id).delete()
+                    }
+                    Log.d("DeleteAbsensi", "Semua data absensi berhasil dihapus.")
+                }
+                .addOnFailureListener { e ->
+                    Log.e("DeleteAbsensi", "Gagal menghapus data absensi", e)
+                }
+        }
+    }
+
+
     /**
      * Absen sambil menyertakan lokasi
      */
