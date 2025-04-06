@@ -1,4 +1,4 @@
-package com.example.absentapp.pages
+package com.example.absentapp.ui.screens.auth
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
@@ -24,8 +24,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.absentapp.AuthState
-import com.example.absentapp.AuthViewModel
+import com.example.absentapp.auth.AuthState
+import com.example.absentapp.auth.AuthViewModel
 
 //import np.com.bimalkafle.firebaseauthdemoapp.AuthState
 //import np.com.bimalkafle.firebaseauthdemoapp.AuthViewModel

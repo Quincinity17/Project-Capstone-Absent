@@ -1,4 +1,4 @@
-package com.example.absentapp.pages
+package com.example.absentapp.ui.screens.auth
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
@@ -6,10 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -27,8 +24,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.absentapp.AuthState
-import com.example.absentapp.AuthViewModel
+import com.example.absentapp.auth.AuthState
+import com.example.absentapp.auth.AuthViewModel
 
 //import np.com.bimalkafle.firebaseauthdemoapp.AuthState
 //import np.com.bimalkafle.firebaseauthdemoapp.AuthViewModel
