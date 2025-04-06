@@ -95,6 +95,8 @@ dependencies {
     implementation(libs.androidx.ui.graphics) // ini yang punya toComposeRenderEffect
 
     implementation("androidx.work:work-runtime-ktx:2.9.0")
+    implementation ("androidx.compose.material:material-icons-extended")
+
 
 
 
