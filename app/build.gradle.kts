@@ -59,7 +59,6 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.2")
 
-
     // Firebase
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth.ktx)
@@ -67,9 +66,25 @@ dependencies {
     implementation(libs.google.firebase.firestore.ktx)
     implementation(libs.firebase.storage.ktx)
 
-
     // Location
     implementation(libs.play.services.location)
+
+    // DataStore Preferences
+    implementation(libs.androidx.datastore.preferences)
+
+    // CameraX versi dari TOML: 1.3.1
+    implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.camera.camera2)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.camera.video)
+    implementation(libs.androidx.camera.view)
+    implementation(libs.androidx.camera.extensions)
+
+    // WorkManager
+    implementation("androidx.work:work-runtime-ktx:2.10.0")
+
+    // Extended Icons
+    implementation("androidx.compose.material:material-icons-extended")
 
     // Testing
     testImplementation(libs.junit)
@@ -80,24 +95,6 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
-    // CameraX
-    implementation(libs.androidx.camera.core)
-    implementation(libs.androidx.camera.camera2)
-    implementation(libs.androidx.camera.lifecycle)
-    implementation(libs.androidx.camera.video)
-    implementation(libs.androidx.camera.view)
-    implementation(libs.androidx.camera.extensions)
-
-    // DataStore Preferences
-    implementation (libs.androidx.datastore.preferences)
-
-    implementation(platform(libs.androidx.compose.bom)) // ini dari TOML kamu
-    implementation(libs.androidx.ui.graphics) // ini yang punya toComposeRenderEffect
-
-    implementation("androidx.work:work-runtime-ktx:2.9.0")
-    implementation ("androidx.compose.material:material-icons-extended")
-
-
-
+    implementation("com.google.guava:guava:31.1-android")
 
 }

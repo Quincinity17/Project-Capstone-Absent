@@ -4,10 +4,7 @@ import android.graphics.Bitmap
 import android.util.Log
 import androidx.camera.core.CameraSelector
 import androidx.camera.view.LifecycleCameraController
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -20,24 +17,18 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
-import androidx.compose.ui.graphics.drawscope.Fill
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.foundation.layout.BoxWithConstraints
-
-import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
-import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.absentapp.R
-import com.example.absentapp.auth.AuthState
 import com.example.absentapp.auth.AuthViewModel
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -54,18 +45,19 @@ fun CameraPage(
     val bitmaps by viewModel.bitmaps.collectAsState()
     var previewBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var showPreviewDialog by remember { mutableStateOf(false) }
+    var flashEnabled by remember { mutableStateOf(false) }
+    var simulateFlash by remember { mutableStateOf(false) }
+
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
 
-    val authState by authViewModel.authState.observeAsState()
-
-    LaunchedEffect(authState) {
-        if (authState is AuthState.Success) {
-            Log.d("Klepon", "✅ Absen sukses: ${authState}")
-            navController.navigate("home") {
-                popUpTo("camera") { inclusive = true }
-            }
+    LaunchedEffect(Unit) {
+        try {
+            controller.bindToLifecycle(lifecycleOwner)
+            controller.cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
+        } catch (e: Exception) {
+            Log.e("CameraPage", "\u274c Error binding camera: ${e.message}", e)
         }
-        controller.cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
     }
 
     BottomSheetScaffold(
@@ -95,17 +87,18 @@ fun CameraPage(
                 modifier = Modifier.fillMaxSize()
             )
 
+            if (simulateFlash) {
+                Box(modifier = Modifier.fillMaxSize().background(Color.White))
+            }
+
             ViewfinderOverlay(
                 widthPercent = 0.7f,
                 heightPercent = 0.6f,
-                verticalOffsetPercent = -0.05f // geser 10% ke atas
+                verticalOffsetPercent = -0.05f
             )
 
-
             IconButton(
-                onClick = {
-                    navController.popBackStack()
-                },
+                onClick = { navController.popBackStack() },
                 modifier = Modifier
                     .padding(16.dp)
                     .align(Alignment.TopStart)
@@ -118,14 +111,10 @@ fun CameraPage(
                 )
             }
 
-            Box(
-                modifier = Modifier.align(Alignment.BottomCenter)
-            ) {
+            Box(modifier = Modifier.align(Alignment.BottomCenter)) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
+                    modifier = Modifier.fillMaxWidth().padding(16.dp)
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -139,28 +128,31 @@ fun CameraPage(
                             tint = Color.White,
                             modifier = Modifier.size(20.dp)
                         )
-
                         Spacer(modifier = Modifier.width(8.dp))
-
                         Text(
                             text = "Ambil selfie sebagai bukti kehadiran di lokasi",
                             color = Color.White,
                             style = MaterialTheme.typography.bodyLarge
                         )
                     }
-
                     Spacer(modifier = Modifier.height(8.dp))
 
                     CameraBottomBar(
-                        previewBitmap = previewBitmap,
-                        onOpenGallery = {
-                            scope.launch { scaffoldState.bottomSheetState.expand() }
-                        },
                         onTakePhoto = {
-                            takePhoto { bitmap ->
-                                previewBitmap = bitmap
-                                showPreviewDialog = true
-                                authViewModel.absenWithPhoto(bitmap, context)
+                            scope.launch {
+                                val isFront = controller.cameraSelector == CameraSelector.DEFAULT_FRONT_CAMERA
+                                if (isFront && flashEnabled) {
+                                    simulateFlash = true
+                                    delay(150)
+                                }
+                                takePhoto { bitmap ->
+                                    previewBitmap = bitmap
+                                    showPreviewDialog = true
+                                    simulateFlash = false
+                                    if (!isFront && flashEnabled) {
+                                        controller.cameraControl?.enableTorch(false)
+                                    }
+                                }
                             }
                         },
                         onSwitchCamera = {
@@ -179,15 +171,17 @@ fun CameraPage(
                     confirmButton = {
                         TextButton(onClick = {
                             viewModel.onTakePhoto(previewBitmap!!)
+                            authViewModel.absenWithPhoto(previewBitmap!!, context)
                             showPreviewDialog = false
+                            navController.navigate("home") {
+                                popUpTo("camera") { inclusive = true }
+                            }
                         }) {
                             Text("Confirm")
                         }
                     },
                     dismissButton = {
-                        TextButton(onClick = {
-                            showPreviewDialog = false
-                        }) {
+                        TextButton(onClick = { showPreviewDialog = false }) {
                             Text("Retake")
                         }
                     },
@@ -195,9 +189,7 @@ fun CameraPage(
                         Image(
                             bitmap = previewBitmap!!.asImageBitmap(),
                             contentDescription = "Captured photo",
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(8.dp))
+                            modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp))
                         )
                     }
                 )
@@ -206,11 +198,12 @@ fun CameraPage(
     }
 }
 
+
 @Composable
 fun ViewfinderOverlay(
     modifier: Modifier = Modifier,
-    widthPercent: Float,  // 80% dari lebar layar
-    heightPercent: Float, // 50% dari tinggi layar
+    widthPercent: Float,
+    heightPercent: Float,
     verticalOffsetPercent: Float = 0f,
     cornerRadius: Dp = 24.dp
 ) {
@@ -228,7 +221,6 @@ fun ViewfinderOverlay(
 
         Canvas(modifier = Modifier.fillMaxSize()) {
             drawRect(color = Color.Black.copy(alpha = 0.5f))
-
             drawRoundRect(
                 color = Color.Transparent,
                 topLeft = Offset(left, top),
@@ -241,12 +233,8 @@ fun ViewfinderOverlay(
 }
 
 
-
-
 @Composable
 fun CameraBottomBar(
-    previewBitmap: Bitmap?,
-    onOpenGallery: () -> Unit,
     onTakePhoto: () -> Unit,
     onSwitchCamera: () -> Unit
 ) {
@@ -257,27 +245,9 @@ fun CameraBottomBar(
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        IconButton(
-            onClick = onOpenGallery,
-            modifier = Modifier
-                .size(56.dp)
-                .clip(RoundedCornerShape(12.dp))
-        ) {
-            if (previewBitmap != null) {
-                Image(
-                    bitmap = previewBitmap.asImageBitmap(),
-                    contentDescription = "Last Photo",
-                    modifier = Modifier.fillMaxSize()
-                )
-            } else {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_flash),
-                    contentDescription = "Open Gallery",
-                    tint = Color.White
-                )
-            }
-        }
+        Spacer(modifier = Modifier.width(56.dp)) // Spacer biar tetap seimbang
 
+        // Tengah: Tombol Ambil Foto
         IconButton(
             onClick = onTakePhoto,
             modifier = Modifier
@@ -293,6 +263,7 @@ fun CameraBottomBar(
             )
         }
 
+        // Kanan: Tombol Switch Kamera
         IconButton(
             onClick = onSwitchCamera,
             modifier = Modifier
@@ -308,15 +279,15 @@ fun CameraBottomBar(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun CameraBottomBarPreview() {
-    Box(modifier = Modifier.background(Color.Transparent)) {
-        CameraBottomBar(
-            previewBitmap = null,
-            onOpenGallery = {},
-            onTakePhoto = {},
-            onSwitchCamera = {},
-        )
-    }
-}
+
+
+//@Preview(showBackground = true)
+//@Composable
+//fun CameraBottomBarPreview() {
+//    Box(modifier = Modifier.background(Color.Transparent)) {
+//        CameraBottomBar(
+//            onTakePhoto = {},
+//            onSwitchCamera = {},
+//        )
+//    }
+//}
