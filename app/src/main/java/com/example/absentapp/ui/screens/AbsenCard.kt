@@ -29,31 +29,44 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.absentapp.R
 
 @Composable
 fun AbsenCard(
+    timenote : String,
+    date: String,
     hourMinute: String,
+    type: String,
     onPhotoClick: (() -> Unit)? = null
 ) {
+    // Pilih gambar background dan label berdasarkan tipe
+    val backgroundRes = when (type) {
+        "keluar" -> R.drawable.bg_checkout // pastikan ada file ini
+        else -> R.drawable.bg_checkin
+    }
+
+    val titleText = when (type) {
+        "keluar" -> "Checkout Time"
+        else -> "Checkin Time"
+    }
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
-            .height(120.dp) // tinggi bebas sesuai desain
+            .height(120.dp)
             .clip(RoundedCornerShape(16.dp))
     ) {
-        // Background image
         Image(
-            painter = painterResource(id = R.drawable.bg_checkin),
+            painter = painterResource(id = backgroundRes),
             contentDescription = null,
-            modifier = Modifier
-                .matchParentSize(),
-            contentScale = ContentScale.Crop // atau Fit jika sesuai kebutuhan
+            modifier = Modifier.matchParentSize(),
+            contentScale = ContentScale.Crop
         )
 
-        // Content di atas gambar
         Row(
             modifier = Modifier
                 .fillMaxSize()
@@ -63,27 +76,31 @@ fun AbsenCard(
         ) {
             Column {
                 Text(
-                    text = "Checkin Time",
-                    style = MaterialTheme.typography.labelLarge,
+                    text = titleText,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Black,
                     color = Color.White
                 )
                 Text(
-                    text = "Tepat Waktu",
-                    style = MaterialTheme.typography.labelSmall,
+                    text = timenote,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium,
                     color = Color.White
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = hourMinute,
-                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Black,
+                    fontSize = 24.sp,
                     color = Color.White
                 )
             }
 
             Column(horizontalAlignment = Alignment.End) {
                 Text(
-                    text = "Today",
-                    style = MaterialTheme.typography.labelMedium,
+                    text = date,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Medium,
                     color = Color.White
                 )
                 Spacer(modifier = Modifier.height(8.dp))
@@ -99,11 +116,16 @@ fun AbsenCard(
                             tint = Color.White
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Lihat Foto", color = Color.White)
+                        Text("Lihat Foto",
+                            color = Color.White,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium,
+                            )
                     }
                 }
             }
         }
     }
 }
+
 

@@ -18,6 +18,8 @@ import com.example.absentapp.ui.screens.camera.CameraViewModel
 import com.example.absentapp.ui.screens.home.Homepage
 import androidx.camera.view.CameraController
 import android.graphics.Bitmap
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
@@ -25,6 +27,7 @@ import androidx.camera.core.ImageProxy
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.core.content.ContextCompat
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyAppNavigation(

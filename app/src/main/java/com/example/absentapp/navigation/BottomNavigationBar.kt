@@ -69,11 +69,11 @@ fun BottomNavigationBar(navController: NavController) {
 
     androidx.compose.foundation.layout.Box (
         modifier = Modifier
-            .offset(y = 32.dp), // Geser dikit ke bawah agar divider kelihatan
+            .offset(y = 32.dp),
     ){
         androidx.compose.material3.Divider(
             thickness = 1.dp,
-            color = Color(0xFFE0E0E0), // abu terang, mirip e-commerce apps
+            color = Color(0xFFE0E0E0),
         )
         NavigationBar(
             tonalElevation = 0.dp,
@@ -93,7 +93,7 @@ fun BottomNavigationBar(navController: NavController) {
                             contentDescription = null,
                             modifier = Modifier
                                 .size(24.dp)
-                                .offset(y = 8.dp)
+                                .offset(y = 0.dp)
                         )
                     },
                     colors = NavigationBarItemDefaults.colors(

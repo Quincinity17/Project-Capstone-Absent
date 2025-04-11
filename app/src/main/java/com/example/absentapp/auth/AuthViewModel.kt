@@ -22,7 +22,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import android.util.Base64
 import com.example.absentapp.data.model.Jadwal
 import java.io.ByteArrayOutputStream
+import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Date
 import java.util.Locale
 
 
@@ -150,7 +152,6 @@ class AuthViewModel : ViewModel() {
             }
     }
 
-
     fun absenWithPhoto(bitmap: Bitmap, context: Context) {
         val user = auth.currentUser
         if (user == null) {
@@ -160,33 +161,242 @@ class AuthViewModel : ViewModel() {
 
         _authState.value = AuthState.Loading
 
-        // Kompres dan konversi ke Base64
         val baos = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 50, baos) // 50 = kompres sedang
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 50, baos)
         val imageBytes = baos.toByteArray()
         val encodedImage = Base64.encodeToString(imageBytes, Base64.DEFAULT)
 
-        Log.d("Klepon", "✅ Gambar berhasil dikonversi ke Base64 (${encodedImage.length} karakter)")
-
-        // Buat data absen
-        val absenData = hashMapOf(
-            "uid" to user.uid,
-            "name" to user.email,
-            "timestamp" to FieldValue.serverTimestamp(),
-            "photoBase64" to encodedImage
-        )
-
-        firestore.collection("absensi")
-            .add(absenData)
-            .addOnSuccessListener {
-                Log.d("Klepon", "✅ Data absen dengan gambar berhasil disimpan ke Firestore")
-                _authState.value = AuthState.Success("Absen dengan foto berhasil!")
+        getTodaySchedule { jadwal ->
+            if (jadwal == null) {
+                _authState.value = AuthState.Error("Jadwal hari ini tidak ditemukan")
+                return@getTodaySchedule
             }
-            .addOnFailureListener {
-                Log.e("Klepon", "❌ Gagal simpan absen: ${it.message}")
-                _authState.value = AuthState.Error("Gagal simpan absen: ${it.message}")
+
+            val now = Calendar.getInstance()
+            val currentHour = now.get(Calendar.HOUR_OF_DAY)
+            val currentMinute = now.get(Calendar.MINUTE)
+            val totalNow = currentHour * 60 + currentMinute
+
+            val (jamMasukHour, jamMasukMinute) = jadwal.jamMasuk.split(":").map { it.toInt() }
+            val (jamKeluarHour, jamKeluarMinute) = jadwal.jamKeluar.split(":").map { it.toInt() }
+            val totalMasuk = jamMasukHour * 60 + jamMasukMinute
+            val totalKeluar = jamKeluarHour * 60 + jamKeluarMinute
+
+            val (timeNote, type) = when {
+                totalNow <= totalMasuk -> "+ ${totalMasuk - totalNow}" to "masuk"
+                totalNow <= totalKeluar -> "- ${totalNow - totalMasuk}" to "masuk"
+                else -> {
+                    val type = "keluar"
+                    val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                    val todayKey = dateFormat.format(Date())
+
+                    firestore.collection("absensi")
+                        .whereEqualTo("uid", user.uid)
+                        .whereEqualTo("type", "masuk")
+                        .get()
+                        .addOnSuccessListener { masukDocs ->
+                            val masukHariIni = masukDocs.documents
+                                .mapNotNull { it.getTimestamp("timestamp")?.toDate() }
+                                .filter { dateFormat.format(it) == todayKey }
+                                .minByOrNull { it.time }
+
+                            val durasiNote = if (masukHariIni != null) {
+                                val now = Date()
+                                val diffMillis = now.time - masukHariIni.time
+                                val totalMinutes = diffMillis / (1000 * 60)
+                                val hours = totalMinutes / 60
+                                val minutes = totalMinutes % 60
+                                "Hadir selama ${hours} jam ${minutes} menit"
+                            } else {
+                                "Hadir hari ini"
+                            }
+
+                            // Lanjut: hapus checkout sebelumnya
+                            firestore.collection("absensi")
+                                .whereEqualTo("uid", user.uid)
+                                .whereEqualTo("type", "keluar")
+                                .get()
+                                .addOnSuccessListener { checkoutDocs ->
+                                    val toDelete = checkoutDocs.documents.filter { doc ->
+                                        val ts = doc.getTimestamp("timestamp")?.toDate()
+                                        ts != null && dateFormat.format(ts) == todayKey
+                                    }
+
+                                    toDelete.forEach { doc ->
+                                        firestore.collection("absensi").document(doc.id).delete()
+                                    }
+
+                                    // Tambahkan absen keluar terbaru
+                                    val absenData = hashMapOf(
+                                        "type" to type,
+                                        "uid" to user.uid,
+                                        "name" to user.email,
+                                        "timestamp" to FieldValue.serverTimestamp(),
+                                        "photoBase64" to encodedImage,
+                                        "timeNote" to durasiNote
+                                    )
+
+                                    firestore.collection("absensi")
+                                        .add(absenData)
+                                        .addOnSuccessListener {
+                                            _authState.value = AuthState.Success("Checkout berhasil!")
+                                        }
+                                        .addOnFailureListener {
+                                            _authState.value = AuthState.Error("Gagal simpan absen: ${it.message}")
+                                        }
+                                }
+                        }
+
+                    return@getTodaySchedule // keluar dari fungsi di sini
+                }
             }
+
+            val absenData = hashMapOf(
+                "type" to type,
+                "uid" to user.uid,
+                "name" to user.email,
+                "timestamp" to FieldValue.serverTimestamp(),
+                "photoBase64" to encodedImage,
+                "timeNote" to timeNote
+            )
+
+            if (type == "keluar") {
+                val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                val todayKey = dateFormat.format(Date())
+
+                firestore.collection("absensi")
+                    .whereEqualTo("uid", user.uid)
+                    .whereEqualTo("type", "keluar")
+                    .get()
+                    .addOnSuccessListener { documents ->
+                        val toDelete = documents.documents.filter { doc ->
+                            val ts = doc.getTimestamp("timestamp")?.toDate()
+                            ts != null && dateFormat.format(ts) == todayKey
+                        }
+
+                        toDelete.forEach { doc ->
+                            firestore.collection("absensi").document(doc.id).delete()
+                        }
+
+                        // Tambah data absen checkout terbaru
+                        firestore.collection("absensi")
+                            .add(absenData)
+                            .addOnSuccessListener {
+                                _authState.value = AuthState.Success("Checkout berhasil!")
+                            }
+                            .addOnFailureListener {
+                                _authState.value = AuthState.Error("Gagal simpan absen: ${it.message}")
+                            }
+                    }
+                    .addOnFailureListener {
+                        _authState.value = AuthState.Error("Gagal cek absen keluar sebelumnya")
+                    }
+            } else {
+                // Tambah absen masuk langsung
+                firestore.collection("absensi")
+                    .add(absenData)
+                    .addOnSuccessListener {
+                        _authState.value = AuthState.Success("Checkin berhasil!")
+                    }
+                    .addOnFailureListener {
+                        _authState.value = AuthState.Error("Gagal simpan absen: ${it.message}")
+                    }
+            }
+        }
     }
+
+
+//    fun absenWithPhoto(bitmap: Bitmap, context: Context) {
+//        val user = auth.currentUser
+//        if (user == null) {
+//            _authState.value = AuthState.Error("User tidak ditemukan")
+//            return
+//        }
+//
+//        _authState.value = AuthState.Loading
+//
+//        val baos = ByteArrayOutputStream()
+//        bitmap.compress(Bitmap.CompressFormat.JPEG, 50, baos)
+//        val imageBytes = baos.toByteArray()
+//        val encodedImage = Base64.encodeToString(imageBytes, Base64.DEFAULT)
+//
+//        getTodaySchedule { jadwal ->
+//            if (jadwal == null) {
+//                _authState.value = AuthState.Error("Jadwal hari ini tidak ditemukan")
+//                return@getTodaySchedule
+//            }
+//
+//            val now = Calendar.getInstance()
+//            val currentHour = now.get(Calendar.HOUR_OF_DAY)
+//            val currentMinute = now.get(Calendar.MINUTE)
+//            val totalNow = currentHour * 60 + currentMinute
+//
+//            val (jamMasukHour, jamMasukMinute) = jadwal.jamMasuk.split(":").map { it.toInt() }
+//            val (jamKeluarHour, jamKeluarMinute) = jadwal.jamKeluar.split(":").map { it.toInt() }
+//            val totalMasuk = jamMasukHour * 60 + jamMasukMinute
+//            val totalKeluar = jamKeluarHour * 60 + jamKeluarMinute
+//
+//            val (timeNote, type) = when {
+//                totalNow <= totalMasuk -> "+ ${totalMasuk - totalNow}" to "masuk"
+//                totalNow <= totalKeluar -> "- ${totalNow - totalMasuk}" to "masuk"
+//                else -> "Absen setelah jam keluar" to "keluar"
+//            }
+//
+//            val absenData = hashMapOf(
+//                "type" to type,
+//                "uid" to user.uid,
+//                "name" to user.email,
+//                "timestamp" to FieldValue.serverTimestamp(),
+//                "photoBase64" to encodedImage,
+//                "timeNote" to timeNote,
+//
+//            )
+//
+//            firestore.collection("absensi")
+//                .add(absenData)
+//                .addOnSuccessListener {
+//                    _authState.value = AuthState.Success("Absen $type berhasil!")
+//                }
+//                .addOnFailureListener {
+//                    _authState.value = AuthState.Error("Gagal simpan absen: ${it.message}")
+//                }
+//        }
+//    }
+
+
+
+//    fun absenWithPhoto(bitmap: Bitmap, context: Context) {
+//        val user = auth.currentUser
+//        if (user == null) {
+//            _authState.value = AuthState.Error("User tidak ditemukan")
+//            return
+//        }
+//
+//        _authState.value = AuthState.Loading
+//
+//        // Kompres dan konversi ke Base64
+//        val baos = ByteArrayOutputStream()
+//        bitmap.compress(Bitmap.CompressFormat.JPEG, 50, baos) // 50 = kompres sedang
+//        val imageBytes = baos.toByteArray()
+//        val encodedImage = Base64.encodeToString(imageBytes, Base64.DEFAULT)
+//
+//        // Buat data absen
+//        val absenData = hashMapOf(
+//            "uid" to user.uid,
+//            "name" to user.email,
+//            "timestamp" to FieldValue.serverTimestamp(),
+//            "photoBase64" to encodedImage
+//        )
+//
+//        firestore.collection("absensi")
+//            .add(absenData)
+//            .addOnSuccessListener {
+//                _authState.value = AuthState.Success("Absen dengan foto berhasil!")
+//            }
+//            .addOnFailureListener {
+//                _authState.value = AuthState.Error("Gagal simpan absen: ${it.message}")
+//            }
+//    }
 
 
 
