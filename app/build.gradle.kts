@@ -97,4 +97,8 @@ dependencies {
 
     implementation("com.google.guava:guava:31.1-android")
 
+    implementation ("com.airbnb.android:lottie-compose:6.1.0")
+
+
+
 }

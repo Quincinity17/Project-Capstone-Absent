@@ -37,26 +37,66 @@ fun ProfilePage(authViewModel: AuthViewModel, navController: NavController) {
     val currentEmail = authViewModel.getCurrentUserEmail()
     var selectedPhoto by remember { mutableStateOf<String?>(null) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-
-
-        if (currentEmail == null) {
+    if (currentEmail == null) {
+        // User belum login
+        Column(
+            modifier = Modifier
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Text("User belum login")
-        } else {
-            val userAbsens = absenTime
-                .filter { it.name == currentEmail }
-                .sortedByDescending { it.timestamp?.toDate() }
+        }
+    } else {
+        val userAbsens = absenTime
+            .filter { it.name == currentEmail }
+            .sortedByDescending { it.timestamp?.toDate() }
 
-            if (userAbsens.isEmpty()) {
-                Text("Belum ada data absen")
-            } else {
+        if (userAbsens.isEmpty()) {
+            // ⬇️ Layout untuk keadaan kosong → tanpa scroll, center 100%
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(32.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Image(
+                        painter = painterResource(R.drawable.ilt_empty),
+                        contentDescription = "Ilustrasi tidak ada data",
+                        modifier = Modifier.size(200.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    Text(
+                        text = "Belum ada data absen",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Gray
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = "Silakan lakukan presensi terlebih dahulu untuk melihat riwayat.",
+                        fontSize = 14.sp,
+                        color = Color.Gray
+                    )
+                }
+            }
+        } else {
+            // ⬇️ Layout saat ada data → pakai scroll
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.Top,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 userAbsens.forEach { absen ->
                     val timeStamp = absen.timestamp?.toDate()
 
@@ -86,7 +126,6 @@ fun ProfilePage(authViewModel: AuthViewModel, navController: NavController) {
                         "-"
                     }
 
-
                     AbsenCard(
                         timenote = formatTimeNoteByType(absen.timeNote, absen.type),
                         type = absen.type ?: "-",
@@ -97,10 +136,106 @@ fun ProfilePage(authViewModel: AuthViewModel, navController: NavController) {
                         }
                     )
                 }
-
             }
         }
     }
+
+
+//    Column(
+//        modifier = Modifier
+//            .fillMaxSize()
+//            .verticalScroll(rememberScrollState())
+//            .padding(16.dp),
+//        verticalArrangement = Arrangement.Center,
+//        horizontalAlignment = Alignment.CenterHorizontally
+//    ) {
+//        if (currentEmail == null) {
+//            Text("User belum login")
+//        } else {
+//            val userAbsens = absenTime
+//                .filter { it.name == currentEmail }
+//                .sortedByDescending { it.timestamp?.toDate() }
+//
+//            if (userAbsens.isEmpty()) {
+//                Box(
+//                    modifier = Modifier
+//                        .fillMaxSize()
+//                        .padding(32.dp), // padding di luar column
+//                    contentAlignment = Alignment.Center
+//                ) {
+//                    Column(
+//                        horizontalAlignment = Alignment.CenterHorizontally
+//                    ) {
+//                        Image(
+//                            painter = painterResource(R.drawable.ilt_empty),
+//                            contentDescription = "Ilustrasi tidak ada data",
+//                            modifier = Modifier.size(200.dp)
+//                        )
+//
+//                        Spacer(modifier = Modifier.height(24.dp))
+//
+//                        Text(
+//                            text = "Belum ada data absen",
+//                            fontSize = 18.sp,
+//                            fontWeight = FontWeight.Bold,
+//                            color = Color.Gray
+//                        )
+//
+//                        Spacer(modifier = Modifier.height(8.dp))
+//
+//                        Text(
+//                            text = "Silakan lakukan presensi terlebih dahulu untuk melihat riwayat.",
+//                            fontSize = 14.sp,
+//                            color = Color.Gray
+//                        )
+//                    }
+//                }
+//            }
+//            else {
+//                userAbsens.forEach { absen ->
+//                    val timeStamp = absen.timestamp?.toDate()
+//
+//                    val hourMinute = timeStamp?.let {
+//                        android.text.format.DateFormat.format("HH:mm", it).toString()
+//                    } ?: "--:--"
+//
+//                    val date = if (timeStamp != null) {
+//                        val cal = Calendar.getInstance()
+//                        val now = cal.clone() as Calendar
+//
+//                        val then = Calendar.getInstance().apply { time = timeStamp }
+//
+//                        val isToday = now.get(Calendar.YEAR) == then.get(Calendar.YEAR) &&
+//                                now.get(Calendar.DAY_OF_YEAR) == then.get(Calendar.DAY_OF_YEAR)
+//
+//                        now.add(Calendar.DAY_OF_YEAR, -1)
+//                        val isYesterday = now.get(Calendar.YEAR) == then.get(Calendar.YEAR) &&
+//                                now.get(Calendar.DAY_OF_YEAR) == then.get(Calendar.DAY_OF_YEAR)
+//
+//                        when {
+//                            isToday -> "Hari ini"
+//                            isYesterday -> "Kemarin"
+//                            else -> SimpleDateFormat("d MMMM yyyy", Locale("id", "ID")).format(timeStamp)
+//                        }
+//                    } else {
+//                        "-"
+//                    }
+//
+//
+//                    AbsenCard(
+//                        timenote = formatTimeNoteByType(absen.timeNote, absen.type),
+//                        type = absen.type ?: "-",
+//                        date = date,
+//                        hourMinute = hourMinute,
+//                        onPhotoClick = absen.photoBase64?.let {
+//                            { selectedPhoto = it }
+//                        }
+//                    )
+//                }
+//
+//            }
+//        }
+//    }
 
     if (selectedPhoto != null) {
         Dialog(onDismissRequest = { selectedPhoto = null }) {

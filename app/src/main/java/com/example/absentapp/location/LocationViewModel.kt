@@ -15,27 +15,30 @@ import com.google.firebase.database.FirebaseDatabase
  */
 class LocationViewModel : ViewModel() {
 
-    // Mutable State yang hanya bisa diubah di dalam ViewModel
     private val _location = MutableStateFlow("Sedang mengambil lokasi Anda saat ini...")
-
-    // State yang bisa di-observe dari luar (UI)
     val location: StateFlow<String> = _location
 
     private val _distance = MutableStateFlow(0f)
     val currentDistance: StateFlow<Float> = _distance
 
-    // Ambil lokasi referensi dari Firebase Realtime Database
-    private fun fetchReferenceLocation(onResult: (Double, Double) -> Unit) {
+    private val _isFetchingLocation = MutableStateFlow(false)
+    val isFetchingLocation: StateFlow<Boolean> = _isFetchingLocation
+
+    private val _distanceLimit = MutableStateFlow(20) // default 20 meter
+    val distanceLimit: StateFlow<Int> = _distanceLimit
+
+    // 🔽 Ambil lat, long, dan limit dari Firebase
+    private fun fetchReferenceLocation(onResult: (Double, Double, Int) -> Unit) {
         val ref = FirebaseDatabase.getInstance().getReference("reference_location")
         ref.get().addOnSuccessListener { snapshot ->
             val lat = snapshot.child("latitude").getValue(Double::class.java)
             val long = snapshot.child("longitude").getValue(Double::class.java)
+            val limit = snapshot.child("Limit").getValue(Int::class.java) ?: 20
 
-            Log.d("rawon", "Fetched from DB: lat=$lat, long=$long")
-
+            Log.d("rawon", "Fetched lat=$lat, long=$long, limit=$limit")
 
             if (lat != null && long != null) {
-                onResult(lat, long)
+                onResult(lat, long, limit)
             } else {
                 Log.e("rawon", "Null latitude or longitude from DB")
             }
@@ -43,15 +46,33 @@ class LocationViewModel : ViewModel() {
             Log.e("rawon", "Failed to get reference location: ${it.message}")
         }
     }
+
+    // 🔄 Update distance & limit
     fun updateLocation(lat: Double, long: Double) {
-        fetchReferenceLocation { refLat, refLng ->
+        _isFetchingLocation.value = true
+
+        fetchReferenceLocation { refLat, refLng, limit ->
             val distance = calculateDistanceInMeters(lat, long, refLat, refLng)
-
             val formattedDistance = String.format("%.0f", distance)
-            _location.value = "Lokasi Anda berada di (%.5f, %.5f), berjarak ${formattedDistance}m dari titik absensi".format(lat, long)
 
+            _location.value = "Lokasi Anda berada di (%.5f, %.5f), berjarak ${formattedDistance}m dari titik absensi".format(lat, long)
             _distance.value = distance.toFloat()
+            _distanceLimit.value = limit
+
+            _isFetchingLocation.value = false
         }
     }
 
+    // ✍️ Update limit dari UI ke Firebase
+    fun updateDistanceLimit(newLimit: Int) {
+        val ref = FirebaseDatabase.getInstance().getReference("reference_location/Limit")
+        ref.setValue(newLimit)
+            .addOnSuccessListener {
+                Log.d("rawon", "Limit updated to $newLimit")
+                _distanceLimit.value = newLimit
+            }
+            .addOnFailureListener {
+                Log.e("rawon", "Failed to update limit: ${it.message}")
+            }
+    }
 }

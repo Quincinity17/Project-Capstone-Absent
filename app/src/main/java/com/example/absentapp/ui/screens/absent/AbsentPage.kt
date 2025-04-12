@@ -85,6 +85,8 @@ fun AbsenPage(
     val currentEmail = authViewModel.getCurrentUserEmail()
     val locationText by locationViewModel.location.collectAsState()
     val distance by locationViewModel.currentDistance.collectAsState()
+    val isLoadingLokasi by locationViewModel.isFetchingLocation.collectAsState()
+
 
     var jadwalHariIni by remember { mutableStateOf<Jadwal?>(null) }
 
@@ -121,6 +123,9 @@ fun AbsenPage(
         set(Calendar.MILLISECOND, 999)
     }
 
+    val distanceLimit by locationViewModel.distanceLimit.collectAsState()
+
+
     val filteredAbsen = absenTime
         .filter { it.name == currentEmail }
         .filter {
@@ -128,6 +133,23 @@ fun AbsenPage(
             time != null && time.after(startOfDay.time) && time.before(endOfDay.time)
         }
         .sortedBy { it.timestamp?.toDate() }
+
+    val sudahAbsenPulang = remember(filteredAbsen, jadwalHariIni) {
+        val thresholdPulang = jadwalHariIni?.jamMasuk?.let {
+            runCatching {
+                LocalTime.parse(it, DateTimeFormatter.ofPattern("HH:mm"))
+                    .plusHours(3) // anggap 3 jam setelah masuk itu waktu pulang
+            }.getOrNull()
+        }
+
+        filteredAbsen.any { absen ->
+            val absenTime = absen.timestamp?.toDate()?.toInstant()
+                ?.atZone(java.time.ZoneId.systemDefault())?.toLocalTime()
+
+            absenTime != null && thresholdPulang != null && absenTime.isAfter(thresholdPulang)
+        }
+    }
+
 
     val sudahAbsen = filteredAbsen.isNotEmpty()
     val jamPulang = jadwalHariIni?.jamKeluar ?: "--:--"
@@ -159,6 +181,7 @@ fun AbsenPage(
                     .padding(horizontal = 16.dp)
                     .align(Alignment.BottomCenter),
                 currentTime = LocalDateTime.now(),
+                enabled = distance <= distanceLimit,
                 onClickAbsen = {
                     navController.navigate("camera")
                 }
@@ -167,12 +190,20 @@ fun AbsenPage(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+
+
         AbsenStatusBanner(
             isAbsenHariIni = sudahAbsen,
+            isSedangMengambilLokasi = isLoadingLokasi,
+            sudahAbsenPulang = sudahAbsenPulang, // hasil dari filter absen
             distance = distance,
+            jadwalMasuk = jadwalHariIni?.jamMasuk ?: "--:--",
             jadwalPulang = jamPulang,
             jamMasukBesok = jamMasukBesok,
+            distanceLimit = distanceLimit, // ⬅️ ini dia
+
         )
+
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -211,7 +242,9 @@ fun AbsenPage(
 fun AbsenGlassCard(
     modifier: Modifier = Modifier,
     currentTime: LocalDateTime,
-    onClickAbsen: () -> Unit
+    onClickAbsen: () -> Unit,
+    enabled: Boolean = true
+
 ) {
     val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
     val dateFormatter = DateTimeFormatter.ofPattern("EEEE, dd MMMM yyyy", Locale("id"))
@@ -274,6 +307,7 @@ fun AbsenGlassCard(
             Spacer(modifier = Modifier.height(24.dp))
 
             Button(
+                enabled = enabled, // ⬅️ tambahkan ini
                 onClick = onClickAbsen,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF022D9B)
@@ -361,45 +395,129 @@ fun JadwalCard(
 @Composable
 fun AbsenStatusBanner(
     isAbsenHariIni: Boolean,
+    isSedangMengambilLokasi: Boolean,
+    sudahAbsenPulang: Boolean,
     distance: Float,
+    distanceLimit: Int, // ⬅️ Tambahkan ini
+    jadwalMasuk: String,
     jadwalPulang: String,
     jamMasukBesok: String
 ) {
-    val pulangTime = try {
-        LocalTime.parse(jadwalPulang, DateTimeFormatter.ofPattern("HH:mm"))
-    } catch (e: Exception) {
-        null
-    }
-
     val now = LocalTime.now()
+    val masukTime = runCatching {
+        LocalTime.parse(jadwalMasuk, DateTimeFormatter.ofPattern("HH:mm"))
+    }.getOrNull()
+
+    val pulangTime = runCatching {
+        LocalTime.parse(jadwalPulang, DateTimeFormatter.ofPattern("HH:mm"))
+    }.getOrNull()
 
     var color = Color.Gray
     val message = buildAnnotatedString {
         when {
-            !isAbsenHariIni && distance > 20f -> {
-                color = Color(0xFFB98800)
-                append("Anda belum absen hari ini, harap mendekat ke titik lokasi agar bisa absen")
+            isSedangMengambilLokasi -> {
+                color = Color(0xFF757575) // abu-abu netral
+                append("Sedang mengambil data lokasi...")
             }
 
-            !isAbsenHariIni && distance <= 10f -> {
-                color = Color(0xFFEF5350)
-                append("Harap lakukan absensi, Anda telah memasuki wilayah absensi")
-            }
+            // Belum masuk jam masuk
+            masukTime != null && now.isBefore(masukTime) -> {
+                // Warna sesuai apakah user dalam zona absensi
+                color = if (distance <= distanceLimit) Color(0xFF4CAF50) else Color(0xFFB98800)
 
-            pulangTime != null && now.isAfter(pulangTime) -> {
-                color = Color(0xFF01CCAD)
-                append("Jangan lupa melakukan absensi besok pada pukul ")
+                appendLine("Anda belum absen hari ini.")
+
+                if (distance <= distanceLimit) {
+                    appendLine("Anda sudah berada di zona absensi.")
+                } else {
+                    val distanceGap = (distance - distanceLimit).toInt().coerceAtLeast(1)
+                    appendLine("Anda tidak berada di zona absensi.")
+                    appendLine("Mendekatlah hingga ${distanceGap}m lagi.")
+                }
+
+                // Jarak ditampilkan tebal
                 withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                    append(jamMasukBesok)
+                    append("(jarak ${distance.toInt()}m)")
+                }
+
+                // Info tambahan jika user sudah absen masuk
+                if (isAbsenHariIni) {
+                    append("\n\n")
+                    color = Color(0xFF01CCAD)
+                    append("Jangan lupa absen pulang Anda, pada pukul ")
+                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                        append(jadwalPulang)
+                    }
                 }
             }
 
+// Sudah masuk tapi belum pulang
+            masukTime != null && pulangTime != null &&
+                    now.isAfter(masukTime) && now.isBefore(pulangTime) -> {
+
+                // Warna sesuai zona
+                color = if (distance <= distanceLimit) Color(0xFFEF5350) else Color(0xFFFF7043)
+
+                appendLine("Anda belum absen hari ini.")
+
+                if (distance <= distanceLimit) {
+                    appendLine("Anda sudah berada di zona absensi.")
+                } else {
+                    val distanceGap = (distance - distanceLimit).toInt().coerceAtLeast(1)
+                    appendLine("Anda tidak berada di zona absensi.")
+                    appendLine("Mendekatlah hingga ${distanceGap}m lagi.")
+                }
+
+                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                    append("(jarak ${distance.toInt()}m)")
+                }
+
+                // Jika sudah absen masuk
+                if (isAbsenHariIni) {
+                    append("\n\n")
+                    color = Color(0xFF01CCAD)
+                    append("Jangan lupa absen pulang, pada pukul ")
+                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                        append(jadwalPulang)
+                    }
+                }
+            }
+
+// Sudah lewat jam pulang
+            masukTime != null && pulangTime != null &&
+                    now.isAfter(pulangTime) -> {
+
+                if (!sudahAbsenPulang) {
+                    color = if (distance <= distanceLimit) Color(0xFFEF6C00) else Color(0xFFFF7043)
+
+                    append("Jangan lupa absen pulang Anda pada pukul ")
+                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                        append("$jadwalPulang\n")
+                    }
+
+                    if (distance <= distanceLimit) {
+                        appendLine("Anda sudah berada di zona absensi.")
+                    } else {
+                        val distanceGap = (distance - distanceLimit).toInt().coerceAtLeast(1)
+                        appendLine("Anda tidak berada di zona absensi.")
+                        appendLine("Mendekatlah hingga ${distanceGap}m lagi.")
+                    }
+
+                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                        append("(jarak ${distance.toInt()}m)")
+                    }
+                } else {
+                    // Jika sudah absen pulang, beri ucapan istirahat dan jadwal besok
+                    color = Color(0xFF388E3C) // hijau adem
+                    append("Selamat beristirahat, jangan lupa absen besok pada pukul ")
+                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                        append(jamMasukBesok)
+                    }
+                }
+            }
             else -> {
-                color = Color(0xFF01CCAD)
-                append("Anda akan memasuki jam pulang pada pukul ")
-                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                    append(jadwalPulang)
-                }
+                color = Color.Gray
+                append("Status absensi tidak diketahui.")
             }
         }
     }
@@ -407,20 +525,18 @@ fun AbsenStatusBanner(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp) // ⬅️ ini dia marginnya
+            .padding(horizontal = 16.dp)
             .background(color.copy(alpha = 0.1f), RoundedCornerShape(20.dp))
             .padding(16.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
-                painter = painterResource(R.drawable.ic_info), // ganti sesuai ikonmu
+                painter = painterResource(R.drawable.ic_info),
                 contentDescription = null,
                 tint = color,
                 modifier = Modifier.size(20.dp)
             )
-
             Spacer(modifier = Modifier.width(8.dp))
-
             Text(
                 text = message,
                 color = color,
@@ -430,3 +546,4 @@ fun AbsenStatusBanner(
         }
     }
 }
+

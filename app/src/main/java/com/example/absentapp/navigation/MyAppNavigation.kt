@@ -26,6 +26,7 @@ import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.core.content.ContextCompat
+import com.example.absentapp.ui.screens.SplashPage
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -48,9 +49,12 @@ fun MyAppNavigation(
 
     NavHost(
         navController = navController,
-        startDestination = "login",
+        startDestination = "splash",
         modifier = modifier
     ) {
+        composable("splash") {
+            SplashPage(navController = navController, authViewModel = authViewModel)
+        }
         composable("login") {
             LoginPage(modifier, navController, authViewModel)
         }

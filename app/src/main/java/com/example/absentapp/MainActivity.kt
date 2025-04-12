@@ -56,10 +56,10 @@ import java.util.concurrent.TimeUnit
  * - Menampilkan UI menggunakan Jetpack Compose
  */
 class MainActivity : ComponentActivity() {
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge() // Mengaktifkan edge-to-edge layout agar UI bisa penuh ke seluruh layar
-
 
 
         lifecycleScope.launch {
@@ -141,7 +141,6 @@ class MainActivity : ComponentActivity() {
         stopLocationService(this)
     }
 
-    // Fungsi untuk memulai LocationService
     private fun startLocationService(context: Context) {
         val intent = Intent(context, LocationService::class.java).apply {
             action = LocationService.ACTION_START // Memberi tahu service untuk mulai tracking
