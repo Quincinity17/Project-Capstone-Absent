@@ -59,7 +59,7 @@ fun MyAppNavigation(
             LoginPage(modifier, navController, authViewModel)
         }
         composable("signup") {
-            SignupPage(modifier, navController, authViewModel)
+            SignupPage( navController, authViewModel)
         }
         composable("home") {
             Homepage(modifier, navController, authViewModel, locationViewModel)
