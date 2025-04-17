@@ -1,9 +1,8 @@
-package com.example.absentapp.ui.screens
+package com.example.absentapp.ui.screens.splash
 
 import androidx.compose.runtime.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -16,14 +15,10 @@ import com.example.absentapp.auth.AuthState
 import androidx.compose.runtime.livedata.observeAsState
 import com.airbnb.lottie.compose.*
 import androidx.compose.animation.*
-import androidx.compose.animation.core.*
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.navigation.compose.rememberNavController
 import com.example.absentapp.R
 
 @Composable
@@ -48,7 +43,7 @@ fun SplashPage(navController: NavController, authViewModel: AuthViewModel) {
     LaunchedEffect(delayFinished, authChecked) {
         if (delayFinished && authChecked) {
             when (authState) {
-                is AuthState.Authenticated -> navController.navigate("home") {
+                is AuthState.Authenticated -> navController.navigate("main") {
                     popUpTo("splash") { inclusive = true }
                 }
                 is AuthState.Unauthenticated -> navController.navigate("login") {

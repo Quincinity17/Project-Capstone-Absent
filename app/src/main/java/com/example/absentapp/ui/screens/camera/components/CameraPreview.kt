@@ -1,4 +1,4 @@
-package com.example.absentapp.ui.screens.camera
+package com.example.absentapp.ui.screens.camera.components
 
 import androidx.camera.view.LifecycleCameraController
 import androidx.camera.view.PreviewView
@@ -7,7 +7,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.viewinterop.AndroidView
 
 @Composable
@@ -15,7 +14,7 @@ fun CameraPreview(
     controller: LifecycleCameraController,
     modifier: Modifier = Modifier
 ) {
-    val lifecycleOwner = LocalLifecycleOwner.current
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
     val isBound = remember { mutableStateOf(false) }
 
     // Bind only once

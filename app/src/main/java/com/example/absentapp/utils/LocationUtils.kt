@@ -1,6 +1,6 @@
 package com.example.absentapp.utils
 
-fun calculateDistanceInMeters(
+fun LocationUtils(
     userLat: Double,
     userLng: Double,
     targetLat: Double,

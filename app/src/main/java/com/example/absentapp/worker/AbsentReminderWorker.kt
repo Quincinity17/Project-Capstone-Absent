@@ -8,23 +8,18 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.datastore.preferences.core.booleanPreferencesKey
-import androidx.datastore.preferences.preferencesDataStore
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.example.absentapp.R
 import com.example.absentapp.data.dataStore.JadwalCachePreference
-import com.google.firebase.auth.FirebaseAuth
 import com.example.absentapp.data.dataStore.helper.dataStore
-
 import kotlinx.coroutines.flow.first
-import java.time.Instant
 import java.time.LocalTime
 import java.time.temporal.ChronoUnit
 import java.util.Date
 
 val NOTIFICATION_ENABLED_KEY = booleanPreferencesKey("notification_enabled")
 
-class ReminderWorker(
+class AbsentReminderWorker(
     private val context: Context,
     workerParams: WorkerParameters
 ) : CoroutineWorker(context, workerParams) {
@@ -36,8 +31,7 @@ class ReminderWorker(
         if (!isReminderEnabled) return Result.success()
 
         val jadwalPref = JadwalCachePreference(applicationContext)
-        val waktuMasukString = jadwalPref.getJamMasukForToday() // contoh: "07:30"
-
+        val waktuMasukString = jadwalPref.getJamMasukForToday()
         val waktuMasuk = LocalTime.parse(waktuMasukString)
 
         val now = LocalTime.now()

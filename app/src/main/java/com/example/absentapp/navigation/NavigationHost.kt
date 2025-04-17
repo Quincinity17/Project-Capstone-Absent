@@ -7,7 +7,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.camera.view.LifecycleCameraController
-import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.ui.platform.LocalContext
 import com.example.absentapp.auth.AuthViewModel
 import com.example.absentapp.location.LocationViewModel
@@ -15,7 +14,7 @@ import com.example.absentapp.ui.screens.auth.LoginPage
 import com.example.absentapp.ui.screens.auth.SignupPage
 import com.example.absentapp.ui.screens.camera.CameraPage
 import com.example.absentapp.ui.screens.camera.CameraViewModel
-import com.example.absentapp.ui.screens.home.Homepage
+import com.example.absentapp.ui.screens.main.MainScreen
 import androidx.camera.view.CameraController
 import android.graphics.Bitmap
 import android.os.Build
@@ -26,12 +25,12 @@ import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.core.content.ContextCompat
-import com.example.absentapp.ui.screens.SplashPage
+import com.example.absentapp.ui.screens.splash.SplashPage
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MyAppNavigation(
+fun NavigationHost(
     modifier: Modifier = Modifier,
     authViewModel: AuthViewModel,
     locationViewModel: LocationViewModel,
@@ -44,7 +43,6 @@ fun MyAppNavigation(
             CameraController.IMAGE_CAPTURE or CameraController.VIDEO_CAPTURE
         )
     }
-    val scaffoldState = rememberBottomSheetScaffoldState()
     val scope = rememberCoroutineScope()
 
     NavHost(
@@ -61,14 +59,13 @@ fun MyAppNavigation(
         composable("signup") {
             SignupPage( navController, authViewModel)
         }
-        composable("home") {
-            Homepage(modifier, navController, authViewModel, locationViewModel)
+        composable("main") {
+            MainScreen( authViewModel, locationViewModel, navController)
         }
         composable("camera") {
             CameraPage(
                 controller = controller,
                 viewModel = cameraViewModel,
-                scaffoldState = scaffoldState,
                 scope = scope,
                 takePhoto = { onPhotoTaken ->
                     controller.takePicture(
@@ -96,7 +93,7 @@ fun MyAppNavigation(
                             }
 
                             override fun onError(exception: ImageCaptureException) {
-                                // Optional: log error
+                                cameraViewModel.setCameraError("Gagal mengambil foto. Coba lagi.")
                             }
                         }
                     )

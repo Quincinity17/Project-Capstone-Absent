@@ -5,7 +5,7 @@ data class AbsentStamp(
     val timestamp: com.google.firebase.Timestamp? = null,
     val uid: String = "",
     val photoBase64: String? = null,
-    val type: String? = null, // ⬅️ Tambahan untuk Checkin/Checkout
-    val timeNote: String? = null // ⬅️ Opsional, jika ingin info "+12"/"Keluar"
+    val type: String? = null,
+    val timeNote: String? = null
 )
 

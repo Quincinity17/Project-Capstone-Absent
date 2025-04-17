@@ -12,21 +12,16 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.core.app.ActivityCompat
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.lifecycleScope
-import androidx.work.Constraints
-import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.example.absentapp.auth.AuthViewModel
 import com.example.absentapp.data.dataStore.JadwalCachePreference
@@ -34,10 +29,10 @@ import com.example.absentapp.data.dataStore.helper.jadwalDataStore
 import com.example.absentapp.location.LocationBridge
 import com.example.absentapp.location.LocationService
 import com.example.absentapp.location.LocationViewModel
-import com.example.absentapp.navigation.MyAppNavigation
+import com.example.absentapp.navigation.NavigationHost
 import com.example.absentapp.ui.screens.camera.CameraViewModel
 import com.example.absentapp.ui.theme.AbsentAppTheme
-import com.example.absentapp.worker.ReminderWorker
+import com.example.absentapp.worker.AbsentReminderWorker
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -64,9 +59,7 @@ class MainActivity : ComponentActivity() {
 
         lifecycleScope.launch {
             syncJadwalFromFirestore(applicationContext)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                cekSelisihWaktuMasuk()
-            }
+            cekSelisihWaktuMasuk()
         }
 
         // Inisialisasi ViewModel yang digunakan di seluruh aplikasi
@@ -78,15 +71,13 @@ class MainActivity : ComponentActivity() {
         LocationBridge.viewModel = locationViewModel
 
         // Membuat notification channel untuk notifikasi tracking lokasi (wajib Android 8+)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                "location", // ID harus sama dengan yang dipakai di LocationService
-                "Location Tracking", // Nama channel yang tampil di pengaturan
-                NotificationManager.IMPORTANCE_LOW // Level pentingnya rendah (tidak bunyi)
-            )
-            val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.createNotificationChannel(channel)
-        }
+        val channel = NotificationChannel(
+            "location", // ID harus sama dengan yang dipakai di LocationService
+            "Location Tracking", // Nama channel yang tampil di pengaturan
+            NotificationManager.IMPORTANCE_LOW // Level pentingnya rendah (tidak bunyi)
+        )
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.createNotificationChannel(channel)
 
         // Meminta izin akses lokasi, kamera, dan notifikasi (tergantung versi Android)
         val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -123,7 +114,7 @@ class MainActivity : ComponentActivity() {
                     containerColor = MaterialTheme.colorScheme.background
                 ) { innerPadding ->
                     // Navigasi utama aplikasi, dengan membawa semua ViewModel yang dibutuhkan
-                    MyAppNavigation(
+                    NavigationHost(
                         modifier = Modifier.padding(innerPadding),
                         authViewModel = authViewModel,
                         locationViewModel = locationViewModel,
@@ -162,7 +153,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun scheduleReminderWorker(context: Context) {
-        val request = OneTimeWorkRequestBuilder<ReminderWorker>()
+        val request = OneTimeWorkRequestBuilder<AbsentReminderWorker>()
             .setInitialDelay(10, TimeUnit.SECONDS) // Worker jalan setelah 10 detik
             .build()
         //        val request = PeriodicWorkRequestBuilder<ReminderWorker>(15, TimeUnit.MINUTES)
@@ -200,15 +191,25 @@ class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     private suspend fun cekSelisihWaktuMasuk() {
         val jadwalPref = JadwalCachePreference(this)
-        val waktuMasukString = jadwalPref.getJamMasukForToday() // misal: "07:30"
+        val waktuMasukString = jadwalPref.getJamMasukForToday()
 
-        val waktuMasuk = LocalTime.parse(waktuMasukString)
-        val now = LocalTime.now()
-        val selisih = ChronoUnit.MINUTES.between(now, waktuMasuk)
-        val hari = android.text.format.DateFormat.format("EEEE", Date()).toString()
+        if (waktuMasukString.isBlank() || waktuMasukString == "null") {
+            Log.e("klepon", "waktuMasukString kosong atau null dari DataStore")
+            return
+        }
 
-        Log.d("klepon", "Hari ini: $hari | Jam masuk: $waktuMasuk | Sekarang: $now | Selisih: $selisih menit")
+        try {
+            val waktuMasuk = LocalTime.parse(waktuMasukString)
+            val now = LocalTime.now()
+            val selisih = ChronoUnit.MINUTES.between(now, waktuMasuk)
+            val hari = android.text.format.DateFormat.format("EEEE", Date()).toString()
+
+            Log.d("klepon", "Hari ini: $hari | Jam masuk: $waktuMasuk | Sekarang: $now | Selisih: $selisih menit")
+        } catch (e: Exception) {
+            Log.e("klepon", "Gagal parse waktuMasukString: $waktuMasukString", e)
+        }
     }
+
 
 
 

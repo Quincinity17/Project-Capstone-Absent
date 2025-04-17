@@ -99,6 +99,9 @@ dependencies {
 
     implementation ("com.airbnb.android:lottie-compose:6.1.0")
 
+    implementation("com.google.accompanist:accompanist-pager-indicators:0.32.0")
 
+
+    implementation("androidx.compose.foundation:foundation:1.5.4") // atau versi terbaru
 
 }

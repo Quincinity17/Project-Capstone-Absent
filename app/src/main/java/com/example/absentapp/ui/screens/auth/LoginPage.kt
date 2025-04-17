@@ -27,7 +27,8 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.absentapp.auth.AuthState
 import com.example.absentapp.auth.AuthViewModel
-import com.example.absentapp.ui.CustomTextField
+import com.example.absentapp.ui.components.CustomTextField
+import com.example.absentapp.ui.theme.LocalAppColors
 
 @Composable
 fun LoginPage(
@@ -38,14 +39,17 @@ fun LoginPage(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
+
     val passwordFocusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
     val authState = authViewModel.authState.observeAsState()
     val context = LocalContext.current
+    val appColors = LocalAppColors.current
+
 
     LaunchedEffect(authState.value) {
         when (authState.value) {
-            is AuthState.Authenticated -> navController.navigate("home")
+            is AuthState.Authenticated -> navController.navigate("main")
             is AuthState.Error -> Toast.makeText(
                 context,
                 (authState.value as AuthState.Error).message,
@@ -62,8 +66,8 @@ fun LoginPage(
                 Brush.verticalGradient(
                     colorStops = arrayOf(
                         0.0f to Color(0x4D034B9F),
-                        0.1f to Color(0xFFF6F6F6),
-                        0.9f to Color(0xFFF6F6F6),
+                        0.1f to appColors.primaryBackground,
+                        0.9f to appColors.primaryBackground,
                         1.0f to Color(0x4D01CBAE)
                     )
                 )
@@ -76,9 +80,9 @@ fun LoginPage(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = "Log in", fontSize = 28.sp)
+            Text(text = "Log in",color = appColors.primaryText, fontSize = 28.sp)
             Spacer(modifier = Modifier.height(4.dp))
-            Text(text = "Please enter your credentials", color = Color.Gray, fontSize = 14.sp)
+            Text(text = "Please enter your credentials", color = appColors.secondaryText, fontSize = 14.sp)
             Spacer(modifier = Modifier.height(24.dp))
 
             // Email Field
@@ -98,6 +102,7 @@ fun LoginPage(
             CustomTextField(
                 value = password,
                 onValueChange = { password = it },
+                isPassword = true,
                 placeholder = "Password",
                 modifier = Modifier.focusRequester(passwordFocusRequester),
                 keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
@@ -106,7 +111,7 @@ fun LoginPage(
                 })
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             // Login Button
             Button(
@@ -116,16 +121,29 @@ fun LoginPage(
                     .height(48.dp)
                     .clip(RoundedCornerShape(8.dp))
                     .background(
-                        brush = Brush.horizontalGradient(
-                            colors = listOf(Color(0xFF024494), Color(0xFF009285))
-                        )
+                        brush = if (email.isNotBlank() && password.isNotBlank()) {
+                            Brush.horizontalGradient(
+                                colors = listOf(Color(0xFF024494), Color(0xFF009285))
+                            )
+                        } else {
+                            Brush.horizontalGradient(
+                                colors = listOf(appColors.gradientDisabledButtonStart, appColors.gradientDisabledButtonEnd)
+                            )
+                        }
                     ),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Transparent,
+                    disabledContainerColor = Color.Transparent,
+                    contentColor = Color.White,
+                    disabledContentColor = Color.White.copy(alpha = 0.5f)
+                ),
+
                 contentPadding = ButtonDefaults.ContentPadding,
-                enabled = authState.value != AuthState.Loading
+                enabled = authState.value != AuthState.Loading && email.isNotBlank() && password.isNotBlank()
             ) {
                 Text("Login", color = Color.White)
             }
+
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -134,7 +152,7 @@ fun LoginPage(
                 navController.navigate("signup")
             }) {
                 Text(buildAnnotatedString {
-                    withStyle(style = SpanStyle(color = Color.Gray)) {
+                    withStyle(style = SpanStyle(color = appColors.secondaryText)) {
                         append("Don't have an account? ")
                     }
                     withStyle(style = SpanStyle(color = Color(0xFF009285))) {
