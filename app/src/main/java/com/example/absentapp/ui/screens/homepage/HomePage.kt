@@ -15,6 +15,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -65,6 +67,9 @@ fun HomePage(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val appColors = LocalAppColors.current
 
+    val focusRequester = remember { FocusRequester() }
+
+
 
     BackHandler {
         showExitDialog = true
@@ -84,12 +89,7 @@ fun HomePage(
     }
 
 
-    // Load cache
-    LaunchedEffect(Unit) {
-        jadwalPrefs.cachedJadwal.collect { cached ->
-            if (cached != null) todaySchedule.value = cached
-        }
-    }
+
 
     // Fetch jadwal dari Firestore
     LaunchedEffect(Unit) {
@@ -197,11 +197,20 @@ fun HomePage(
         Spacer(modifier = Modifier.height(16.dp))
 
         todaySchedule.value?.let {
+            val scheduleAvailable = rememberUpdatedState(it)
+
+            LaunchedEffect(scheduleAvailable) {
+                focusRequester.requestFocus()
+            }
+
             Text(
                 text = "Jadwal Anda hari ini ya :)",
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+                modifier = Modifier
+                    .padding(horizontal = 16.dp, vertical = 12.dp)
+                    .focusRequester(focusRequester)
+
             )
 
             JadwalCard(
@@ -221,5 +230,12 @@ fun HomePage(
         )
 
         Spacer(modifier = Modifier.height(16.dp))
+    }
+
+    // Load cache
+    LaunchedEffect(Unit) {
+        jadwalPrefs.cachedJadwal.collect { cached ->
+            if (cached != null) todaySchedule.value = cached
+        }
     }
 }
