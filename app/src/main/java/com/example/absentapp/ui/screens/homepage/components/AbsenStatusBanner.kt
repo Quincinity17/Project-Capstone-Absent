@@ -18,6 +18,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -159,12 +161,16 @@ fun AbsenStatusBanner(
         }
     }
 
+    val plainMessage = message.text
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
             .background(color.copy(alpha = 0.1f), RoundedCornerShape(20.dp))
             .padding(16.dp)
+            .clearAndSetSemantics {
+                contentDescription = "Kondisi saat ini. $plainMessage"
+            }
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(

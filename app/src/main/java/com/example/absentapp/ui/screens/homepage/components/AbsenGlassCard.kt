@@ -29,6 +29,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -52,6 +55,10 @@ fun AbsenGlassCard(
     val appColors = LocalAppColors.current
     val isDarkMode = isSystemInDarkTheme()
     val imageRes = if (isDarkMode) R.drawable.bg_glass_dark else R.drawable.bg_glass
+
+    val currentTimes = currentTime.format(timeFormatter)
+    val currentDates = currentTime.format(dateFormatter)
+
 
 
     Box(
@@ -87,21 +94,27 @@ fun AbsenGlassCard(
             ) {
                 Image(
                     painter = painterResource(R.drawable.ilt_clock),
-                    contentDescription = "Clock Illustration",
-                    modifier = Modifier.size(80.dp)
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(80.dp)
+                        .clearAndSetSemantics {}
                 )
                 Column (
-                    modifier = Modifier.padding(start = 12.dp)
+                    modifier = Modifier
+                        .padding(start = 12.dp)
+                        .semantics(mergeDescendants = true) {
+                            contentDescription = "Saat ini jam $currentTimes, $currentDates"
+                        }
 
                 ){
                     Text(
-                        text = currentTime.format(timeFormatter),
+                        text = currentTimes,
                         fontSize = 32.sp,
                         fontWeight = FontWeight.Black,
                         color = appColors.primaryText
                     )
                     Text(
-                        text = currentTime.format(dateFormatter),
+                        text = currentDates,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,
                         color = appColors.primaryText
@@ -121,6 +134,9 @@ fun AbsenGlassCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(64.dp)
+                    .clearAndSetSemantics {
+                        contentDescription = "Presensi sekarang"
+                    }
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically
