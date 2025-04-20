@@ -22,6 +22,15 @@ data class AppColorScheme(
 
     val primaryButtonColors: Color,
 
+    val strokeButton: Color,
+
+    val iconBgColorCheckIn: Color,
+    val iconBgColorCheckOut: Color,
+
+    val iconColorCheckIn: Color,
+    val iconColorCheckOut: Color,
+
+
 
 
 
@@ -57,6 +66,14 @@ val LightAppColors = AppColorScheme(
 
     primaryButtonColors = Color(0xFF022D9B),
 
+    strokeButton = Color(0xFFD5D5D5),
+
+    iconBgColorCheckIn = Color(0xFFF0FCFA),
+    iconBgColorCheckOut = Color(0xFFD4F1FF),
+
+    iconColorCheckIn = Color(0xFF75C9AF),
+    iconColorCheckOut = Color(0xFF01638E),
+
 
 
 
@@ -71,7 +88,8 @@ val LightAppColors = AppColorScheme(
     neutral = Color(0xFF757575),
     bannerZonaMasuk = Color(0xFF01CCAD),
     bannerZonaLuar = Color(0xFFFF7043),
-)
+
+    )
 
 val DarkAppColors = AppColorScheme(
     primaryBackground = Color(0xFF121212),
@@ -89,6 +107,14 @@ val DarkAppColors = AppColorScheme(
     checkedTrackColor = Color(0xFF6C7A9C),
 
     primaryButtonColors = Color(0xFF0947E3),
+    strokeButton = Color(0xFF696868),
+
+    iconBgColorCheckIn = Color(0xFF4F6C52),
+    iconBgColorCheckOut = Color(0xFF1C4053),
+
+    iconColorCheckIn = Color(0xFF00B57D),
+    iconColorCheckOut = Color(0xFF1493CB),
+
 
 
 

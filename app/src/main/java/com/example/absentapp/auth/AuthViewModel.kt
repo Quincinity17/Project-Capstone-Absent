@@ -231,9 +231,8 @@ class AuthViewModel : ViewModel() {
                     val minutes = diffMillis / 60000
                     val hours = minutes / 60
                     "Hadir selama $hours jam ${minutes % 60} menit"
-                } ?: "Hadir hari ini"
+                } ?: "Tidak absen masuk"
 
-                // Hapus absen keluar hari ini jika sudah ada sebelumnya
                 firestoreRef
                     .whereEqualTo("uid", uid)
                     .whereEqualTo("type", "keluar")

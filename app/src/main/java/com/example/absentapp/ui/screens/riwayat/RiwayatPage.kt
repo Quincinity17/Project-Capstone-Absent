@@ -53,6 +53,9 @@ fun RiwayatPage(authViewModel: AuthViewModel) {
             .filter { it.name == currentEmail }
             .sortedByDescending { it.timestamp?.toDate() }
 
+
+
+
         if (userAbsens.isEmpty()) {
             // Tampilan saat tidak ada data absen
             Box(
@@ -93,56 +96,96 @@ fun RiwayatPage(authViewModel: AuthViewModel) {
                 }
             }
         } else {
-            // Menampilkan data absen
+            val userAbsens = absenTime
+                .filter { it.name == currentEmail }
+                .sortedByDescending { it.timestamp?.toDate() }
+
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
                     .background(appColors.primaryBackground)
-                    .padding(16.dp),
+                    .padding(12.dp)
+                    .padding(horizontal = 12.dp, vertical = 16.dp)
+
+                ,
                 verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                userAbsens.forEach { absen ->
-                    val timeStamp = absen.timestamp?.toDate()
+                Text(
+                    text = "History Page",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.Start),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 24.sp,
+                    color = appColors.primaryText,
+                )
 
-                    val hourMinute = timeStamp?.let {
-                        android.text.format.DateFormat.format("HH:mm", it).toString()
-                    } ?: "--:--"
+                Spacer(modifier = Modifier.height(24.dp))
 
-                    val date = timeStamp?.let {
-                        val cal = Calendar.getInstance()
-                        val now = cal.clone() as Calendar
-                        val then = Calendar.getInstance().apply { time = it }
-
-                        val isToday = now.get(Calendar.YEAR) == then.get(Calendar.YEAR) &&
-                                now.get(Calendar.DAY_OF_YEAR) == then.get(Calendar.DAY_OF_YEAR)
-                        now.add(Calendar.DAY_OF_YEAR, -1)
-                        val isYesterday = now.get(Calendar.YEAR) == then.get(Calendar.YEAR) &&
-                                now.get(Calendar.DAY_OF_YEAR) == then.get(Calendar.DAY_OF_YEAR)
-
-                        when {
-                            isToday -> "Hari ini"
-                            isYesterday -> "Kemarin"
-                            else -> SimpleDateFormat("d MMMM yyyy", Locale("id", "ID")).format(it)
-                        }
-                    } ?: "-"
-
-                    RiwayatCard(
-                        timenote = formatTimeNoteByType(absen.timeNote, absen.type),
-                        type = absen.type ?: "-",
-                        date = date,
-                        hourMinute = hourMinute,
-                        onPhotoClick = absen.photoBase64?.let {
-                            {
-                                selectedPhoto = it
-                            }
-                        }
+                if (userAbsens.isEmpty()) {
+                    Image(
+                        painter = painterResource(R.drawable.ilt_empty),
+                        contentDescription = "Ilustrasi tidak ada data",
+                        modifier = Modifier.size(200.dp)
                     )
 
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    Text(
+                        text = "Belum ada data absen",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = appColors.primaryText
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = "Silakan lakukan presensi terlebih dahulu",
+                        fontSize = 14.sp,
+                        color = appColors.secondaryText,
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                    )
+                } else {
+                    userAbsens.forEach { absen ->
+                        val timeStamp = absen.timestamp?.toDate()
+
+                        val hourMinute = timeStamp?.let {
+                            android.text.format.DateFormat.format("HH:mm", it).toString()
+                        } ?: "--:--"
+
+                        val date = timeStamp?.let {
+                            val cal = Calendar.getInstance()
+                            val now = cal.clone() as Calendar
+                            val then = Calendar.getInstance().apply { time = it }
+
+                            val isToday = now.get(Calendar.YEAR) == then.get(Calendar.YEAR) &&
+                                    now.get(Calendar.DAY_OF_YEAR) == then.get(Calendar.DAY_OF_YEAR)
+                            now.add(Calendar.DAY_OF_YEAR, -1)
+                            val isYesterday = now.get(Calendar.YEAR) == then.get(Calendar.YEAR) &&
+                                    now.get(Calendar.DAY_OF_YEAR) == then.get(Calendar.DAY_OF_YEAR)
+
+                            when {
+                                isToday -> "Hari ini"
+                                isYesterday -> "Kemarin"
+                                else -> SimpleDateFormat("d MMMM yyyy", Locale("id", "ID")).format(it)
+                            }
+                        } ?: "-"
+
+                        RiwayatCard(
+                            timenote = formatTimeNoteByType(absen.timeNote, absen.type),
+                            type = absen.type ?: "-",
+                            date = date,
+                            hourMinute = hourMinute,
+                            onPhotoClick = absen.photoBase64?.let { { selectedPhoto = it } }
+                        )
+                    }
                 }
             }
         }
+
     }
 
     // Dialog foto presensi

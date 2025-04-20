@@ -16,6 +16,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import com.airbnb.lottie.compose.*
 import androidx.compose.animation.*
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
@@ -86,7 +87,10 @@ fun SplashPageUI(previewMode: Boolean = false) {
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier.clearAndSetSemantics {
+                "Selamat datang"
+            }
         ) {
             LottieAnimation(
                 composition = composition,

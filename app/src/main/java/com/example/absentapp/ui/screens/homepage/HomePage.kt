@@ -20,9 +20,13 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -47,6 +51,7 @@ import java.util.*
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HomePage(
+
     authViewModel: AuthViewModel,
     locationViewModel: LocationViewModel,
     navController: NavController
@@ -70,8 +75,20 @@ fun HomePage(
     val appColors = LocalAppColors.current
 
     val focusRequester = remember { FocusRequester() }
+    val focusManager = LocalFocusManager.current
 
 
+//    LaunchedEffect(Unit) {
+//        // Dipanggil sekali ketika composable ini masuk komposisi (navigasi ke Home)
+//        focusRequester.requestFocus()
+//    }
+
+//    LaunchedEffect(Unit) {
+//        // Clear any previous focus to reset TalkBack focus&#8203;:contentReference[oaicite:5]{index=5}
+//        focusManager.clearFocus(force = true)
+//        // Request focus on the target component (title Text)
+//        focusRequester.requestFocus()
+//    }
 
     BackHandler {
         showExitDialog = true
@@ -173,7 +190,9 @@ fun HomePage(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
-                    .align(Alignment.BottomCenter),
+                    .align(Alignment.BottomCenter)
+                    .semantics { heading() }
+                ,
                 currentTime = LocalDateTime.now(),
                 enabled = distance <= distanceLimit,
                 onClickAbsen = {
@@ -201,9 +220,6 @@ fun HomePage(
         todaySchedule.value?.let {
             val scheduleAvailable = rememberUpdatedState(it)
 
-            LaunchedEffect(scheduleAvailable) {
-                focusRequester.requestFocus()
-            }
 
             Text(
                 text = "Jadwal Anda hari ini ya :)",
@@ -212,7 +228,7 @@ fun HomePage(
                 modifier = Modifier
                     .padding(horizontal = 16.dp, vertical = 12.dp)
                     .focusRequester(focusRequester)
-                    .clearAndSetSemantics {
+                    .semantics {
                         contentDescription = "Jadwal Anda hari ini"
                     }
 
@@ -222,13 +238,15 @@ fun HomePage(
             JadwalCard(
                 icon = R.drawable.ic_check,
                 label = "masuk",
-                waktu = it.jamMasuk
-            )
+                waktu = it.jamMasuk,
+
+                )
 
             JadwalCard(
                 icon = R.drawable.ic_car,
                 label = "pulang",
-                waktu = it.jamKeluar
+                waktu = it.jamKeluar,
+
             )
         } ?: Text(
             "Jadwal hari ini tidak ditemukan",
@@ -236,12 +254,5 @@ fun HomePage(
         )
 
         Spacer(modifier = Modifier.height(16.dp))
-    }
-
-    // Load cache
-    LaunchedEffect(Unit) {
-        jadwalPrefs.cachedJadwal.collect { cached ->
-            if (cached != null) todaySchedule.value = cached
-        }
     }
 }

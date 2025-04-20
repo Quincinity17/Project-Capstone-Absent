@@ -6,7 +6,13 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.semantics.isTraversalGroup
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
@@ -19,6 +25,7 @@ import com.example.absentapp.ui.screens.homepage.HomePage
 import com.example.absentapp.ui.screens.riwayat.RiwayatPage
 import com.example.absentapp.ui.screens.setting.SettingPage
 import com.example.absentapp.ui.theme.LocalAppColors
+import kotlinx.coroutines.delay
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -29,19 +36,33 @@ fun MainScreen(
 ) {
     val bottomNavController = rememberNavController()
     val appColors = LocalAppColors.current
+    val bottomBarFocusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(Unit) {
+        delay(150) // kasih waktu HomePage tersusun dulu
+        bottomBarFocusRequester.requestFocus()
+    }
 
 
     Scaffold(
         containerColor = appColors.primaryBackground,
         bottomBar = {
-            BottomNavigationBar(navController = bottomNavController)
+            BottomNavigationBar(
+                navController = bottomNavController,
+                focusRequester = bottomBarFocusRequester            )
         },
         contentWindowInsets = WindowInsets(0.dp)
     ) { padding ->
         NavHost(
             navController = bottomNavController,
             startDestination = "homePage",
-            modifier = Modifier.padding(padding)
+            modifier = Modifier
+                .padding(padding)
+                .semantics {
+                    // Main content read after bottom nav
+                    isTraversalGroup = true
+                    traversalIndex = 1f
+                }
         ) {
             composable("homePage") {
                 HomePage(

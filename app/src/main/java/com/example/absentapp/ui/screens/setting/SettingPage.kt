@@ -62,8 +62,8 @@ fun SettingPage(
         modifier = Modifier
             .fillMaxSize()
             .padding(12.dp)
-            .clip(RoundedCornerShape(16.dp)) // Tambahkan rounded di sini
-            .padding(horizontal = 12.dp, vertical = 16.dp) // Inner padding
+            .clip(RoundedCornerShape(16.dp))
+            .padding(horizontal = 12.dp, vertical = 16.dp)
     ) {
         Text(
             "Setting Page",

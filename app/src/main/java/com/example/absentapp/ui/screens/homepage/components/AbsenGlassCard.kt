@@ -135,7 +135,7 @@ fun AbsenGlassCard(
                     .fillMaxWidth()
                     .height(64.dp)
                     .clearAndSetSemantics {
-                        contentDescription = "Presensi sekarang"
+                        contentDescription = "Presensi sekarang "
                     }
             ) {
                 Row(

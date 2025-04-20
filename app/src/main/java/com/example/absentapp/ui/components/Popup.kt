@@ -18,6 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.res.painterResource
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.ui.tooling.preview.Preview
 import com.example.absentapp.ui.theme.LocalAppColors
 
 
@@ -38,13 +39,12 @@ fun Popup(
         modifier = Modifier
             .fillMaxWidth()
             .background(appColors.secondaryBackground, RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-            .padding(8.dp),
+            .padding(18.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Header
         Row(
             modifier = Modifier
-                .padding(horizontal = 8.dp)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -77,10 +77,11 @@ fun Popup(
         }
 
 
-        Spacer(modifier = Modifier.height(24.dp))
 
         // First button
         if (!button1Text.isNullOrBlank() && onButton1Click != null) {
+            Spacer(modifier = Modifier.height(24.dp))
+
             Button(
                 onClick = onButton1Click,
                 modifier = Modifier
@@ -111,3 +112,30 @@ fun Popup(
         }
     }
 }
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewPopup() {
+    val dummyImage: @Composable () -> Unit = {
+        Image(
+            painter = painterResource(id = android.R.drawable.ic_dialog_info),
+            contentDescription = "Contoh Gambar",
+            modifier = Modifier
+                .size(100.dp)
+                .clip(CircleShape)
+        )
+    }
+
+    MaterialTheme {
+        Popup(
+            title = "Judul Popup",
+            onClose = {},
+            imageContent = dummyImage,
+            button1Text = "Oke",
+            button2Text = "Batal",
+            onButton1Click = {},
+            onButton2Click = {}
+        )
+    }
+}
+

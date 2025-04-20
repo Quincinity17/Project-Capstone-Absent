@@ -27,6 +27,7 @@ import com.example.absentapp.ui.theme.LocalAppColors
 
 @Composable
 fun JadwalCard(
+    modifier: Modifier = Modifier, // Tambahin ini
     icon: Int,
     label: String,
     waktu: String
@@ -35,7 +36,7 @@ fun JadwalCard(
 
 
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
             .padding(vertical = 4.dp)

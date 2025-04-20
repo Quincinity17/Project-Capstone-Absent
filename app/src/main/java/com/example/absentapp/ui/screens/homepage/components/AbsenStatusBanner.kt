@@ -34,6 +34,7 @@ import java.time.format.DateTimeFormatter
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AbsenStatusBanner(
+    modifier: Modifier = Modifier, // Tambahin ini
     isAbsenHariIni: Boolean,
     isSedangMengambilLokasi: Boolean,
     sudahAbsenPulang: Boolean,
@@ -79,11 +80,11 @@ fun AbsenStatusBanner(
                     }
                     if (distance <= distanceLimit) {
                         color = Color(0xFFE91E63)
-                        appendLine("Anda sudah berada di zona absensi.")
+                        append("Anda sudah berada di zona absensi.")
                     } else {
                         color = Color(0xFFFF5722)
                         val distanceGap = (distance - distanceLimit).toInt().coerceAtLeast(1)
-                        appendLine("Mendekatlah hingga ${distanceGap}m lagi.")
+                        append("Mendekatlah hingga ${distanceGap}m lagi.")
                     }
 
                 } else if (isAbsenHariIni){
@@ -139,12 +140,12 @@ fun AbsenStatusBanner(
                     }
                     if (distance <= distanceLimit) {
                         color = Color(0xFFE91E63)
-                        appendLine("Anda sudah berada di zona absensi.")
+                        append("Anda sudah berada di zona absensi.")
                     } else {
                         color = Color(0xFFE91E63)
                         val distanceGap = (distance - distanceLimit).toInt().coerceAtLeast(1)
                         appendLine("Anda tidak berada di zona absensi.")
-                        appendLine("Mendekatlah hingga ${distanceGap}m lagi.")
+                        append("Mendekatlah hingga ${distanceGap}m lagi.")
                     }
                 } else if (sudahAbsenPulang){
                     color = Color(0xFF01CCAD)
@@ -163,7 +164,7 @@ fun AbsenStatusBanner(
 
     val plainMessage = message.text
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
             .background(color.copy(alpha = 0.1f), RoundedCornerShape(20.dp))

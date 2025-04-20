@@ -17,9 +17,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.isTraversalGroup
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -40,7 +45,10 @@ data class BottomNavigationItem(
  * Menyediakan akses cepat ke halaman "Absen" dan "Profile".
  */
 @Composable
-fun BottomNavigationBar(navController: NavController) {
+fun BottomNavigationBar(
+    navController: NavController,
+    focusRequester: FocusRequester
+) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
@@ -54,7 +62,14 @@ fun BottomNavigationBar(navController: NavController) {
 
     Box(modifier = Modifier
         .offset(y = 32.dp)
-        .background(appColors.primaryBackground))
+        .background(appColors.primaryBackground)
+        .semantics {
+            // Bottom nav is read first by TalkBack
+            isTraversalGroup = true
+            traversalIndex = 0f
+        }
+    )
+
     {
         HorizontalDivider(thickness = 1.dp, color = appColors.primaryBackground)
 
@@ -64,6 +79,9 @@ fun BottomNavigationBar(navController: NavController) {
                     selected = currentRoute == item.route,
                     onClick = {
                         if (currentRoute != item.route) {
+
+
+
                             navController.navigate(item.route) {
                                 popUpTo(navController.graph.startDestinationId) {
                                     saveState = true
@@ -77,7 +95,12 @@ fun BottomNavigationBar(navController: NavController) {
                         Icon(
                             painter = if (currentRoute == item.route) item.selectedIcon else item.unselectedIcon,
                             contentDescription = item.title,
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier
+                                .size(24.dp)
+                                .then(
+                                    if (item.route == "homePage") Modifier.focusRequester(focusRequester)
+                                    else Modifier
+                                )
                         )
                     },
                     label = { Text(item.title) },
