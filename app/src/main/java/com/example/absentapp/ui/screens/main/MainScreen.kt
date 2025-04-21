@@ -18,6 +18,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.absentapp.auth.AuthViewModel
 import com.example.absentapp.location.LocationViewModel
 import com.example.absentapp.navigation.BottomNavigationBar
@@ -64,22 +65,68 @@ fun MainScreen(
                     traversalIndex = 1f
                 }
         ) {
-            composable("homePage") {
+            composable(
+                route = "homePage?fromBottomBar={fromBottomBar}",
+                arguments = listOf(
+                    navArgument("fromBottomBar") {
+                        defaultValue = "false"
+                    }
+                )
+            ) { backStackEntry ->
+                val fromBottomBar = backStackEntry.arguments?.getString("fromBottomBar") == "true"
+
                 HomePage(
+                    fromBottomBar = fromBottomBar, // TAMBAHKAN INI
                     authViewModel = authViewModel,
                     locationViewModel = locationViewModel,
                     navController = rootNavController
                 )
             }
-            composable("riwayatPage") {
-                RiwayatPage(authViewModel = authViewModel)
+            composable(
+                route = "riwayatPage?fromBottomBar={fromBottomBar}",
+                arguments = listOf(
+                    navArgument("fromBottomBar") {
+                        defaultValue = "false"
+                    }
+                )
+            ) { backStackEntry ->
+                val fromBottomBar = backStackEntry.arguments?.getString("fromBottomBar") == "true"
+
+                RiwayatPage(
+                    fromBottomBar = fromBottomBar,
+                    authViewModel = authViewModel
+                )
             }
-            composable("settingPage") {
+
+
+
+
+//            composable("riwayatPage") {
+//                RiwayatPage(authViewModel = authViewModel)
+//            }
+
+            composable(
+                route = "settingPage?fromBottomBar={fromBottomBar}",
+                arguments = listOf(
+                    navArgument("fromBottomBar") {
+                        defaultValue = "false"
+                    }
+                )
+            ) { backStackEntry ->
+                val fromBottomBar = backStackEntry.arguments?.getString("fromBottomBar") == "true"
+
                 SettingPage(
+                    fromBottomBar = fromBottomBar,
                     authViewModel = authViewModel,
                     rootNavController = rootNavController
                 )
             }
+//            composable("settingPage") {
+//                SettingPage(
+//                    authViewModel = authViewModel,
+//                    rootNavController = rootNavController
+//                )
+//            }
 
         }
     }

@@ -4,7 +4,7 @@ import android.graphics.Bitmap
 import android.util.Log
 import androidx.camera.core.CameraSelector
 import androidx.camera.view.LifecycleCameraController
-import androidx.compose.foundation.*
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -13,6 +13,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.isTraversalGroup
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -26,18 +31,6 @@ import com.example.absentapp.ui.screens.camera.components.ViewfinderOverlay
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
-/**
- * Halaman utama kamera yang digunakan untuk mengambil selfie sebagai bukti absensi.
- * Menampilkan preview kamera, tombol kendali, overlay viewfinder, dan galeri foto hasil selfie.
- *
- * @param controller CameraX lifecycle-aware controller untuk preview dan pengambilan gambar.
- * @param viewModel ViewModel untuk menyimpan hasil bitmap dan mengatur error state.
- * @param scaffoldState Scaffold state untuk mengatur bottom sheet foto.
- * @param scope CoroutineScope untuk menjalankan logika async (pengambilan gambar).
- * @param takePhoto Callback yang akan dipanggil ketika tombol ambil foto ditekan.
- * @param authViewModel ViewModel yang digunakan untuk mengirim data absen (foto).
- * @param navController NavController untuk navigasi ke halaman lain.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CameraPage(
@@ -54,7 +47,6 @@ fun CameraPage(
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
     val navBackStackEntry by navController.currentBackStackEntryAsState()
 
-
     // Tampilkan dialog error jika gagal ambil foto
     errorMessage?.let {
         CameraErrorDialog(message = it) {
@@ -65,7 +57,7 @@ fun CameraPage(
         }
     }
 
-    // Bind CameraX ke lifecycle
+    // Bind CameraX
     LaunchedEffect(Unit) {
         try {
             controller.bindToLifecycle(lifecycleOwner)
@@ -75,12 +67,8 @@ fun CameraPage(
         }
     }
 
-    // UI utama kamera
     Box(modifier = Modifier.fillMaxSize()) {
-        CameraPreview(
-            controller = controller,
-            modifier = Modifier.fillMaxSize()
-        )
+        CameraPreview(controller = controller, modifier = Modifier.fillMaxSize())
 
         ViewfinderOverlay(
             widthPercent = 0.7f,
@@ -88,23 +76,33 @@ fun CameraPage(
             verticalOffsetPercent = -0.05f
         )
 
-        // Tombol back
+        // Back Button (last in traversal)
         IconButton(
             onClick = { navController.popBackStack() },
             modifier = Modifier
                 .padding(16.dp)
                 .align(Alignment.TopStart)
                 .size(64.dp)
+                .semantics {
+                    contentDescription = "Kembali ke halaman sebelumnya"
+                    traversalIndex = 3f
+                }
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_close),
-                contentDescription = "Back",
+                contentDescription = null,
                 tint = Color.White
             )
         }
 
-        // Info & tombol kendali
-        Box(modifier = Modifier.align(Alignment.BottomCenter)) {
+        // Info + BottomBar
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .semantics {
+                    isTraversalGroup = true
+                }
+        ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
@@ -116,6 +114,10 @@ fun CameraPage(
                     modifier = Modifier
                         .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
                         .padding(horizontal = 12.dp, vertical = 6.dp)
+                        .clearAndSetSemantics {
+                            contentDescription = "Ambil selfie sebagai bukti kehadiran di lokasi"
+                            traversalIndex = 0f
+                        }
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.ic_info),
@@ -152,7 +154,7 @@ fun CameraPage(
             }
         }
 
-        // Dialog preview foto
+        // Dialog preview
         previewBitmap?.let { bitmap ->
             if (showPreviewDialog) {
                 CameraPreviewDialog(
@@ -171,4 +173,3 @@ fun CameraPage(
         }
     }
 }
-

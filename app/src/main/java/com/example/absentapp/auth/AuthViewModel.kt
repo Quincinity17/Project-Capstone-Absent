@@ -8,6 +8,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.absentapp.data.model.AbsentStamp
 import com.example.absentapp.data.model.Jadwal
+import com.example.absentapp.utils.sanitizeTimeInput
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -167,8 +168,14 @@ class AuthViewModel : ViewModel() {
             val totalNow = now.get(Calendar.HOUR_OF_DAY) * 60 + now.get(Calendar.MINUTE)
 
             // Hitung waktu masuk dan keluar dari jadwal
-            val (jamMasukHour, jamMasukMinute) = jadwal.jamMasuk.split(":").map { it.toInt() }
-            val (jamKeluarHour, jamKeluarMinute) = jadwal.jamKeluar.split(":").map { it.toInt() }
+            val (jamMasukHour, jamMasukMinute) = sanitizeTimeInput(jadwal.jamMasuk)
+                .split(":")
+                .map { it.toIntOrNull() ?: 0 }
+
+            val (jamKeluarHour, jamKeluarMinute) = sanitizeTimeInput(jadwal.jamKeluar)
+                .split(":")
+                .map { it.toIntOrNull() ?: 0 }
+
             val totalMasuk = jamMasukHour * 60 + jamMasukMinute
             val totalKeluar = jamKeluarHour * 60 + jamKeluarMinute
 

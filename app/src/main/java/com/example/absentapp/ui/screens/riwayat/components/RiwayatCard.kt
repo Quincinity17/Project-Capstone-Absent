@@ -51,14 +51,15 @@ fun RiwayatCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp),
+            .padding(vertical = 8.dp)
+            .semantics(mergeDescendants = true) {}, // 👈 grup satu card
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = appColors.secondaryBackground),
         border = BorderStroke(1.dp, appColors.strokeButton)
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
 
-            // Bagian atas (dibungkus Box untuk rounded background)
+            // Bagian atas
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -68,18 +69,13 @@ fun RiwayatCard(
                         width = 1.dp,
                         color = appColors.strokeButton,
                         shape = RoundedCornerShape(12.dp)
-
                     )
                     .clip(RoundedCornerShape(16.dp))
-
             ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 16.dp, end = 16.dp, bottom = 8.dp, top = 8.dp)
-                        .clearAndSetSemantics {
-                            contentDescription = "Telah absen $type dan $timenote di $date pada pukul $hourMinute "
-                        },
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
@@ -97,7 +93,6 @@ fun RiwayatCard(
                                 tint = iconColor,
                                 modifier = Modifier.size(24.dp)
                             )
-
                         }
                         Spacer(modifier = Modifier.width(12.dp))
                         Column {
@@ -132,8 +127,6 @@ fun RiwayatCard(
                 }
             }
 
-
-
             // Tombol bawah
             if (onPhotoClick != null) {
                 TextButton(
@@ -141,7 +134,7 @@ fun RiwayatCard(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(48.dp)
-                        .clearAndSetSemantics {
+                        .semantics {
                             contentDescription = "Lihat foto bukti $type di $date jam $hourMinute"
                         },
                     colors = ButtonDefaults.textButtonColors(contentColor = darkTextColor)
@@ -151,7 +144,7 @@ fun RiwayatCard(
                         fontSize = 14.sp,
                         color = appColors.primaryText,
                         fontWeight = FontWeight.Medium,
-                        modifier = Modifier.weight(1f) // Biar teks dorong icon ke kanan
+                        modifier = Modifier.weight(1f)
                     )
                     Icon(
                         painter = painterResource(id = R.drawable.ic_arrow),
@@ -160,10 +153,10 @@ fun RiwayatCard(
                         tint = appColors.primaryText
                     )
                 }
-
             }
         }
     }
+
 }
 
 

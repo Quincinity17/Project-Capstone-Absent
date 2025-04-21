@@ -7,6 +7,7 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -41,6 +42,8 @@ import com.example.absentapp.ui.screens.homepage.components.AbsenGlassCard
 import com.example.absentapp.ui.screens.homepage.components.AbsenStatusBanner
 import com.example.absentapp.ui.screens.homepage.components.JadwalCard
 import com.example.absentapp.ui.theme.LocalAppColors
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -51,6 +54,7 @@ import java.util.*
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HomePage(
+    fromBottomBar: Boolean,
 
     authViewModel: AuthViewModel,
     locationViewModel: LocationViewModel,
@@ -109,8 +113,18 @@ fun HomePage(
 
 
 
+// Jalankan hanya saat dari BottomBar, dan setelah UI tersusun
+    LaunchedEffect(fromBottomBar) {
+        if (fromBottomBar) {
+            // Delay sedikit agar .focusRequester sudah menempel
+            snapshotFlow { true }.first()
 
-    // Fetch jadwal dari Firestore
+            delay(100)
+            focusRequester.requestFocus()
+        }
+    }
+
+// Fetch jadwal seperti biasa
     LaunchedEffect(Unit) {
         authViewModel.getTodaySchedule { fetched ->
             fetched?.let {
@@ -121,6 +135,7 @@ fun HomePage(
             }
         }
     }
+
 
     val now = Calendar.getInstance()
     val startOfDay = (now.clone() as Calendar).apply {
@@ -172,6 +187,8 @@ fun HomePage(
             .verticalScroll(rememberScrollState())
             .background(appColors.primaryBackground)
     ) {
+
+
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -185,6 +202,47 @@ fun HomePage(
                     .fillMaxHeight(0.8f)
                     .fillMaxWidth()
             )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(start = 16.dp, top = 16.dp)
+                    .focusRequester(focusRequester)
+                    .focusable()
+                    .clearAndSetSemantics {
+                        contentDescription = "Selamat datang di halaman beranda"
+                    }
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_profile), // ganti dengan id icon kamu
+                    contentDescription = "Ikon profil",
+                    modifier = Modifier.size(20.dp),
+                    tint = appColors.primaryText
+                )
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Text(
+                    text = "Selamat datang, Faza",
+                    color = appColors.primaryText,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 16.sp
+                )
+            }
+
+//            Text(
+//                text = "Selamat datang, Faza",
+//                fontWeight = FontWeight.SemiBold,
+//                fontSize = 16.sp,
+//                modifier = Modifier
+//                    .align(Alignment.TopStart) // posisi kiri atas
+//                    .padding(start = 16.dp, top = 16.dp)
+//                    .focusRequester(focusRequester)
+//                    .focusable()
+//                    .semantics {
+//                        contentDescription = "Selamat datang di halaman beranda"
+//                    }
+//            )
 
             AbsenGlassCard(
                 modifier = Modifier
@@ -227,7 +285,7 @@ fun HomePage(
                 fontSize = 18.sp,
                 modifier = Modifier
                     .padding(horizontal = 16.dp, vertical = 12.dp)
-                    .focusRequester(focusRequester)
+                    .focusable()
                     .semantics {
                         contentDescription = "Jadwal Anda hari ini"
                     }

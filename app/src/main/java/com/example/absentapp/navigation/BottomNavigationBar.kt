@@ -76,13 +76,16 @@ fun BottomNavigationBar(
         NavigationBar(tonalElevation = 0.dp, containerColor = appColors.primaryBackground) {
             items.forEach { item ->
                 NavigationBarItem(
-                    selected = currentRoute == item.route,
+                    selected = currentRoute?.startsWith(item.route) == true,
                     onClick = {
                         if (currentRoute != item.route) {
+                            val routeWithParam = when (item.route) {
+                                "homePage", "riwayatPage", "settingPage" -> "${item.route}?fromBottomBar=true"
+                                else -> item.route
+                            }
 
 
-
-                            navController.navigate(item.route) {
+                            navController.navigate(routeWithParam) {
                                 popUpTo(navController.graph.startDestinationId) {
                                     saveState = true
                                 }
@@ -90,10 +93,12 @@ fun BottomNavigationBar(
                                 restoreState = true
                             }
                         }
-                    },
+                    }
+
+                    ,
                     icon = {
                         Icon(
-                            painter = if (currentRoute == item.route) item.selectedIcon else item.unselectedIcon,
+                            painter = if (currentRoute?.startsWith(item.route) == true) item.selectedIcon else item.unselectedIcon,
                             contentDescription = item.title,
                             modifier = Modifier
                                 .size(24.dp)

@@ -11,6 +11,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import com.example.absentapp.ui.theme.LocalAppColors
@@ -41,7 +44,8 @@ fun ConfirmationBottomSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(24.dp),
+                .padding(24.dp)
+                ,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Image(
@@ -52,25 +56,28 @@ fun ConfirmationBottomSheet(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            Text(
-                text = title,
-                color = appColors.primaryText,
-                fontWeight = FontWeight.Bold,
-                fontSize = 24.sp
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = description,
-                color = appColors.secondaryText,
-                fontSize = 14.sp,
-                textAlign = TextAlign.Center,
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .align(Alignment.CenterHorizontally)
-            )
+                    .padding(24.dp)
+                    .semantics(mergeDescendants = true) {
+                        contentDescription = "$title. $description"
+                    },
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
 
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = description,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
 

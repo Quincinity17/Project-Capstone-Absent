@@ -1,6 +1,7 @@
 package com.example.absentapp.ui.screens.homepage.components
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -28,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.absentapp.R
 import com.example.absentapp.ui.theme.LocalAppColors
+import com.example.absentapp.utils.sanitizeTimeInput
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
@@ -49,12 +51,22 @@ fun AbsenStatusBanner(
 
     val now = LocalTime.now()
     val masukTime = runCatching {
-        LocalTime.parse(jadwalMasuk, DateTimeFormatter.ofPattern("HH:mm"))
+        LocalTime.parse(sanitizeTimeInput(jadwalMasuk), DateTimeFormatter.ofPattern("HH:mm"))
+    }.onFailure {
+        Log.e("rawon", "Parsing gagal masukTime dari: '${jadwalMasuk}'", it)
     }.getOrNull()
 
     val pulangTime = runCatching {
-        LocalTime.parse(jadwalPulang, DateTimeFormatter.ofPattern("HH:mm"))
+        LocalTime.parse(sanitizeTimeInput(jadwalPulang), DateTimeFormatter.ofPattern("HH:mm"))
+    }.onFailure {
+        Log.e("rawon", "Parsing gagal pulangTime dari: '${jadwalPulang}'", it)
     }.getOrNull()
+
+
+
+//    Log.d("rawon",     "Jadwal Masuk : $jadwalMasuk ; Jadwal Pulang : $jadwalPulang")
+//    Log.d("rawon", "masuk Time : $masukTime ; Pulang Time : $pulangTime;  $now ; ")
+
 
     var color = Color.Gray
     val message = buildAnnotatedString {
@@ -68,6 +80,7 @@ fun AbsenStatusBanner(
                 color = Color(0xFF757575) // abu-abu netral
                 append("Sedang mengambil data lokasi...")
             }
+
 
             // Belum masuk jam masuk
             masukTime != null && now.isBefore(masukTime) -> {

@@ -1,6 +1,7 @@
 package com.example.absentapp.ui.screens.setting
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -18,17 +19,24 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -38,12 +46,15 @@ import com.example.absentapp.auth.AuthViewModel
 import com.example.absentapp.data.dataStore.NotificationPreference
 import com.example.absentapp.ui.components.ConfirmationBottomSheet
 import com.example.absentapp.ui.theme.LocalAppColors
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingPage(
+    fromBottomBar: Boolean,
     authViewModel: AuthViewModel,
     rootNavController: NavController) {
     val context = LocalContext.current
@@ -57,6 +68,18 @@ fun SettingPage(
     val showDeleteAbsentSheet = remember { mutableStateOf(false) }
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val focusRequester = remember { FocusRequester() }
+
+
+    LaunchedEffect(fromBottomBar) {
+        if (fromBottomBar) {
+            // Delay sedikit agar .focusRequester sudah menempel
+            snapshotFlow { true }.first()
+
+            delay(100)
+            focusRequester.requestFocus()
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -67,7 +90,12 @@ fun SettingPage(
     ) {
         Text(
             "Setting Page",
-            fontWeight = FontWeight.Bold,
+            modifier = Modifier
+                .focusRequester(focusRequester)
+                .focusable(),
+
+
+                    fontWeight = FontWeight.Bold,
             fontSize = 24.sp,
             color = appColors.primaryText,
         )
@@ -80,7 +108,11 @@ fun SettingPage(
                 .fillMaxWidth()
                 .padding(vertical = 18.dp)
         ) {
-            Column(modifier = Modifier.weight(1f)) {
+            Column(modifier = Modifier
+                .weight(1f)
+                .clearAndSetSemantics {
+                    contentDescription = "Reminder Absensi,Akan memberi notifikasi 10 menit sebelum batas absen jika belum login. "
+                }) {
                 Text(
                     "Reminder Absensi",
                     fontWeight = FontWeight.Bold,
@@ -96,6 +128,9 @@ fun SettingPage(
             Spacer(modifier = Modifier.weight(0.1f))
             Switch(
                 checked = isNotificationEnabled,
+                modifier = Modifier.semantics {
+                    contentDescription = "Reminder Absensi "
+                },
                 onCheckedChange = { isChecked ->
                     scope.launch {
                         notificationPref.setNotificationEnabled(isChecked)
@@ -141,7 +176,7 @@ fun SettingPage(
             Icon(
                 painter = painterResource(id = R.drawable.ic_arrow),
                 modifier = Modifier.size(24.dp),
-                contentDescription = "Arahkan",
+                contentDescription = "",
                 tint = appColors.primaryText
             )
         }
@@ -175,7 +210,7 @@ fun SettingPage(
             Icon(
                 painter = painterResource(id = R.drawable.ic_arrow),
                 modifier = Modifier.size(24.dp),
-                contentDescription = "Arahkan",
+                contentDescription = "",
                 tint = appColors.primaryText
             )
         }

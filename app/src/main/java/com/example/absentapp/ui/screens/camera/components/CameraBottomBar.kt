@@ -1,13 +1,7 @@
 package com.example.absentapp.ui.screens.camera.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -17,6 +11,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.unit.dp
 import com.example.absentapp.R
 
@@ -32,7 +29,7 @@ fun CameraBottomBar(
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Spacer(modifier = Modifier.width(56.dp))
+        Spacer(modifier = Modifier.width(56.dp)) // kiri kosong
 
         // Tengah: Tombol Ambil Foto
         IconButton(
@@ -41,10 +38,14 @@ fun CameraBottomBar(
                 .size(84.dp)
                 .clip(RoundedCornerShape(42.dp))
                 .background(Color.White)
+                .semantics {
+                    contentDescription = "Ambil foto"
+                    traversalIndex = 1f // setelah info text
+                }
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_circle),
-                contentDescription = "Take Photo",
+                contentDescription = null,
                 modifier = Modifier.size(80.dp),
                 tint = Color.Black
             )
@@ -56,10 +57,14 @@ fun CameraBottomBar(
             modifier = Modifier
                 .size(56.dp)
                 .clip(RoundedCornerShape(12.dp))
+                .semantics {
+                    contentDescription = "Ganti kamera depan atau belakang"
+                    traversalIndex = 2f
+                }
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_switch),
-                contentDescription = "Switch Camera",
+                contentDescription = null,
                 tint = Color.White
             )
         }
