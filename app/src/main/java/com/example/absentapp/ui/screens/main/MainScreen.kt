@@ -40,7 +40,7 @@ fun MainScreen(
     val bottomBarFocusRequester = remember { FocusRequester() }
 
     LaunchedEffect(Unit) {
-        delay(150) // kasih waktu HomePage tersusun dulu
+        delay(150)
         bottomBarFocusRequester.requestFocus()
     }
 
@@ -60,11 +60,11 @@ fun MainScreen(
             modifier = Modifier
                 .padding(padding)
                 .semantics {
-                    // Main content read after bottom nav
                     isTraversalGroup = true
                     traversalIndex = 1f
                 }
         ) {
+            //Halaman Homepage
             composable(
                 route = "homePage?fromBottomBar={fromBottomBar}",
                 arguments = listOf(
@@ -76,12 +76,14 @@ fun MainScreen(
                 val fromBottomBar = backStackEntry.arguments?.getString("fromBottomBar") == "true"
 
                 HomePage(
-                    fromBottomBar = fromBottomBar, // TAMBAHKAN INI
+                    fromBottomBar = fromBottomBar,
                     authViewModel = authViewModel,
                     locationViewModel = locationViewModel,
                     navController = rootNavController
                 )
             }
+
+            //Halaman Riwayat
             composable(
                 route = "riwayatPage?fromBottomBar={fromBottomBar}",
                 arguments = listOf(
@@ -98,13 +100,7 @@ fun MainScreen(
                 )
             }
 
-
-
-
-//            composable("riwayatPage") {
-//                RiwayatPage(authViewModel = authViewModel)
-//            }
-
+            //Halaman Setting
             composable(
                 route = "settingPage?fromBottomBar={fromBottomBar}",
                 arguments = listOf(
@@ -117,17 +113,12 @@ fun MainScreen(
 
                 SettingPage(
                     fromBottomBar = fromBottomBar,
+                    locationViewModel = locationViewModel,
+
                     authViewModel = authViewModel,
                     rootNavController = rootNavController
                 )
             }
-//            composable("settingPage") {
-//                SettingPage(
-//                    authViewModel = authViewModel,
-//                    rootNavController = rootNavController
-//                )
-//            }
-
         }
     }
 }

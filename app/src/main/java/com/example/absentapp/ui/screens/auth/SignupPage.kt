@@ -172,9 +172,9 @@ fun SignupPage(
             }) {
                 Text(buildAnnotatedString {
                     withStyle(style = SpanStyle(color = Color.Gray)) {
-                        append("Already have an account? ")
+                        append("Sudah punya akun? ")
                     }
-                    withStyle(style = SpanStyle(color = appColors.secondaryText)) {
+                    withStyle(style = SpanStyle(color = appColors.primaryButtonColors)) {
                         append("Log in")
                     }
                 })

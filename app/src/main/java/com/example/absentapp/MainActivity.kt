@@ -1,6 +1,8 @@
 package com.example.absentapp
 
 import android.Manifest
+import android.annotation.SuppressLint
+import android.app.AlarmManager
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
@@ -21,10 +23,9 @@ import androidx.core.app.ActivityCompat
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.lifecycleScope
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
 import com.example.absentapp.auth.AuthViewModel
 import com.example.absentapp.data.dataStore.JadwalCachePreference
+import com.example.absentapp.data.dataStore.NotificationPreference
 import com.example.absentapp.data.dataStore.helper.jadwalDataStore
 import com.example.absentapp.location.LocationBridge
 import com.example.absentapp.location.LocationService
@@ -32,54 +33,76 @@ import com.example.absentapp.location.LocationViewModel
 import com.example.absentapp.navigation.NavigationHost
 import com.example.absentapp.ui.screens.camera.CameraViewModel
 import com.example.absentapp.ui.theme.AbsentAppTheme
-import com.example.absentapp.worker.AbsentReminderWorker
+import com.example.absentapp.utils.scheduleAllWeekAbsenAlarms
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.time.LocalTime
 import java.time.temporal.ChronoUnit
 import java.util.Date
-import java.util.concurrent.TimeUnit
 
 /**
- * MainActivity adalah entry point dari aplikasi.
- * Di sini dilakukan:
- * - Inisialisasi ViewModel
- * - Setup permission & notification channel
+ * MainActivity adalah entry point dari aplikasi AbsentApp.
+ *
+ * Fungsinya mencakup:
+ * - Inisialisasi ViewModel (Auth, Lokasi, Kamera)
+ * - Setup permission & notifikasi
+ * - Menyinkronkan jadwal dari Firestore ke DataStore
+ * - Menjadwalkan notifikasi absen mingguan (jika diaktifkan)
  * - Menjalankan location service
- * - Menampilkan UI menggunakan Jetpack Compose
+ * - Menampilkan UI berbasis Jetpack Compose
  */
 class MainActivity : ComponentActivity() {
+
+    @SuppressLint("SuspiciousIndentation")
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge() // Mengaktifkan edge-to-edge layout agar UI bisa penuh ke seluruh layar
+        enableEdgeToEdge()
 
-
-        lifecycleScope.launch {
-            syncJadwalFromFirestore(applicationContext)
-            cekSelisihWaktuMasuk()
+        // Setup AlarmManager agar bisa menjadwalkan alarm tepat waktu (khusus Android 12+)
+        val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !alarmManager.canScheduleExactAlarms()) {
+            val intent = Intent(android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
+            if (intent.resolveActivity(packageManager) != null) {
+                startActivity(intent)
+            } else {
+                Log.w("RENDANGAYAM", "Device tidak support buka pengaturan exact alarm")
+            }
         }
 
-        // Inisialisasi ViewModel yang digunakan di seluruh aplikasi
-        val authViewModel = AuthViewModel()         // Untuk login & autentikasi
-        val locationViewModel = LocationViewModel() // Untuk pelacakan lokasi
-        val cameraViewModel = CameraViewModel()     // Untuk kamera & selfie
+        // Sinkronisasi jadwal dari Firestore ke DataStore + jadwalkan alarm absen mingguan
+        lifecycleScope.launch {
+            syncJadwalFromFirestore(applicationContext)
 
-        // Menyambungkan ViewModel lokasi ke bridge agar bisa digunakan di luar Compose (di service)
+            val notificationPref = NotificationPreference(this@MainActivity)
+            val isEnabled = notificationPref.isNotificationEnabled.first()
+            Log.e("RENDANGAYAM", "Manggil schedule")
+            Log.e("RENDANGAYAM", "kondisi cache $isEnabled")
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && isEnabled) {
+                scheduleAllWeekAbsenAlarms(applicationContext)
+            }
+        }
+
+        // Inisialisasi semua ViewModel utama
+        val authViewModel = AuthViewModel()
+        val locationViewModel = LocationViewModel()
+        val cameraViewModel = CameraViewModel()
         LocationBridge.viewModel = locationViewModel
 
-        // Membuat notification channel untuk notifikasi tracking lokasi (wajib Android 8+)
+        // Buat notification channel untuk pelacakan lokasi
         val channel = NotificationChannel(
-            "location", // ID harus sama dengan yang dipakai di LocationService
-            "Location Tracking", // Nama channel yang tampil di pengaturan
-            NotificationManager.IMPORTANCE_LOW // Level pentingnya rendah (tidak bunyi)
+            "location",
+            "Location Tracking",
+            NotificationManager.IMPORTANCE_LOW
         )
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.createNotificationChannel(channel)
 
-        // Meminta izin akses lokasi, kamera, dan notifikasi (tergantung versi Android)
+        // Meminta semua permission yang dibutuhkan
         val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             arrayOf(
                 Manifest.permission.CAMERA,
@@ -96,24 +119,18 @@ class MainActivity : ComponentActivity() {
                 Manifest.permission.FOREGROUND_SERVICE_LOCATION
             )
         }
-
-        // Meminta izin tersebut ke pengguna
         ActivityCompat.requestPermissions(this, permissions, 0)
 
-        // Menjalankan background service untuk pelacakan lokasi
+        // Jalankan background location service
         startLocationService(this)
 
-        // Menjadwalkan Worker notifikasi reminder
-        scheduleReminderWorker(this)
-
-        // Menampilkan UI aplikasi dengan Jetpack Compose
+        // Render UI dengan Jetpack Compose
         setContent {
             AbsentAppTheme {
-                Scaffold(modifier = Modifier
-                    .fillMaxSize(),
+                Scaffold(
+                    modifier = Modifier.fillMaxSize(),
                     containerColor = MaterialTheme.colorScheme.background
                 ) { innerPadding ->
-                    // Navigasi utama aplikasi, dengan membawa semua ViewModel yang dibutuhkan
                     NavigationHost(
                         modifier = Modifier.padding(innerPadding),
                         authViewModel = authViewModel,
@@ -125,52 +142,38 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    // Lifecycle method yang terpanggil saat activity dihancurkan
     override fun onDestroy() {
         super.onDestroy()
-        // Menghentikan location service saat aplikasi ditutup
         stopLocationService(this)
     }
 
+    /**
+     * Fungsi untuk memulai LocationService sebagai foreground service
+     */
     private fun startLocationService(context: Context) {
         val intent = Intent(context, LocationService::class.java).apply {
-            action = LocationService.ACTION_START // Memberi tahu service untuk mulai tracking
+            action = LocationService.ACTION_START
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            // Android 8+ butuh startForegroundService untuk background service
             context.startForegroundService(intent)
         } else {
             context.startService(intent)
         }
     }
 
-    // Fungsi untuk menghentikan LocationService
+    /**
+     * Fungsi untuk menghentikan LocationService
+     */
     private fun stopLocationService(context: Context) {
         val intent = Intent(context, LocationService::class.java).apply {
-            action = LocationService.ACTION_STOP // Memberi tahu service untuk berhenti
+            action = LocationService.ACTION_STOP
         }
         context.stopService(intent)
     }
 
-    private fun scheduleReminderWorker(context: Context) {
-        val request = OneTimeWorkRequestBuilder<AbsentReminderWorker>()
-            .setInitialDelay(10, TimeUnit.SECONDS) // Worker jalan setelah 10 detik
-            .build()
-        //        val request = PeriodicWorkRequestBuilder<ReminderWorker>(15, TimeUnit.MINUTES)
-//            .setConstraints(
-//                Constraints.Builder()
-//                    .setRequiresBatteryNotLow(true)
-//                    .build()
-//            )
-//            .build()
-        WorkManager.getInstance(context).enqueue(request)
-
-//        WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-//            "reminderWorker",
-//            ExistingPeriodicWorkPolicy.KEEP,
-//            request
-//        )
-    }
+    /**
+     * Sinkronisasi jadwal absen dari Firestore ke DataStore
+     */
     fun syncJadwalFromFirestore(context: Context) {
         val firestore = FirebaseFirestore.getInstance()
         val dataStore = context.jadwalDataStore
@@ -188,6 +191,10 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    /**
+     * Mengecek selisih waktu antara sekarang dan waktu masuk
+     * Digunakan untuk keperluan debug atau logika notifikasi
+     */
     @RequiresApi(Build.VERSION_CODES.O)
     private suspend fun cekSelisihWaktuMasuk() {
         val jadwalPref = JadwalCachePreference(this)
@@ -209,8 +216,4 @@ class MainActivity : ComponentActivity() {
             Log.e("klepon", "Gagal parse waktuMasukString: $waktuMasukString", e)
         }
     }
-
-
-
-
 }

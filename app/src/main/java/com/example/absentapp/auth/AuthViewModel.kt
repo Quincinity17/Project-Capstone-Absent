@@ -118,10 +118,31 @@ class AuthViewModel : ViewModel() {
 
     fun getTodaySchedule(onResult: (Jadwal?) -> Unit) {
         val db = FirebaseFirestore.getInstance()
-        val hariIni = Calendar.getInstance().getDisplayName(Calendar.DAY_OF_WEEK, Calendar.LONG, Locale("id"))?.lowercase()
+        val Today = Calendar.getInstance().getDisplayName(Calendar.DAY_OF_WEEK, Calendar.LONG, Locale("id"))?.lowercase()
 
         db.collection("jadwal")
-            .whereEqualTo("hari", hariIni)
+            .whereEqualTo("hari", Today)
+            .get()
+            .addOnSuccessListener { result ->
+
+                val doc = result.documents.firstOrNull()
+                val jadwal = doc?.toObject(Jadwal::class.java)
+                onResult(jadwal)
+            }
+            .addOnFailureListener {
+                onResult(null)
+            }
+    }
+
+    fun getTomorrowSchedule(onResult: (Jadwal?) -> Unit) {
+        val db = FirebaseFirestore.getInstance()
+        val calendar = Calendar.getInstance().apply {
+            add(Calendar.DAY_OF_WEEK, 1)
+        }
+        val tomorrow = calendar.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.LONG, Locale("id"))?.lowercase()
+
+        db.collection("jadwal")
+            .whereEqualTo("hari", tomorrow)
             .get()
             .addOnSuccessListener { result ->
                 val doc = result.documents.firstOrNull()
@@ -132,6 +153,21 @@ class AuthViewModel : ViewModel() {
                 onResult(null)
             }
     }
+
+    fun getAllJadwal(onResult: (List<Jadwal>) -> Unit) {
+        firestore.collection("jadwal")
+            .get()
+            .addOnSuccessListener { result ->
+                val jadwalList = result.toObjects(Jadwal::class.java)
+                onResult(jadwalList)
+            }
+            .addOnFailureListener { e ->
+                Log.e("JadwalFetch", "Gagal mengambil semua jadwal", e)
+                onResult(emptyList())
+            }
+    }
+
+
 
     /**
      * Melakukan proses absensi dengan menyertakan foto dalam bentuk bitmap.
@@ -295,7 +331,7 @@ class AuthViewModel : ViewModel() {
      * Menghapus semua data absensi dari pengguna
      */
     fun deleteAllAbsenceHistory() {
-        Log.d("DeleteAbsensi", "kepanggil")
+        Log.d("DONAT", "kepanggil")
 
         val userId = auth.currentUser?.uid
         if (userId != null) {
@@ -306,10 +342,10 @@ class AuthViewModel : ViewModel() {
                     for (document in documents) {
                         firestore.collection("absensi").document(document.id).delete()
                     }
-                    Log.d("DeleteAbsensi", "Semua data absensi berhasil dihapus.")
+                    Log.d("DONAT", "Semua data absensi berhasil dihapus.")
                 }
                 .addOnFailureListener { e ->
-                    Log.e("DeleteAbsensi", "Gagal menghapus data absensi", e)
+                    Log.e("DONAT", "Gagal menghapus data absensi", e)
                 }
         }
     }

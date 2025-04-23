@@ -47,7 +47,7 @@ fun AbsenGlassCard(
     modifier: Modifier = Modifier,
     currentTime: LocalDateTime,
     onClickAbsen: () -> Unit,
-    enabled: Boolean = true
+    enabled: Boolean
 
 ) {
     val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")

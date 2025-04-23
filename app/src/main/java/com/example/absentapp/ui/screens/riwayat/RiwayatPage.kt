@@ -2,16 +2,33 @@ package com.example.absentapp.ui.screens.riwayat
 
 import android.graphics.BitmapFactory
 import android.util.Base64
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -20,9 +37,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.isTraversalGroup
@@ -40,9 +55,16 @@ import com.example.absentapp.ui.theme.LocalAppColors
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Calendar
+import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * Halaman Riwayat yang menampilkan daftar absen berdasarkan email user.
+ * Menampilkan popup foto saat item diklik.
+ *
+ * @param fromBottomBar Menentukan apakah halaman dibuka dari bottom bar (untuk focus TalkBack)
+ * @param authViewModel ViewModel autentikasi untuk akses data user dan absen
+ */
 @Composable
 fun RiwayatPage(
     fromBottomBar: Boolean,
@@ -54,12 +76,9 @@ fun RiwayatPage(
     val focusRequester = remember { FocusRequester() }
     val appColors = LocalAppColors.current
 
-    Log.d("Soto", "fromBottomBar = $fromBottomBar")
-
-
+    // Fokus ke heading saat diakses dari BottomNavigation
     LaunchedEffect(fromBottomBar) {
         if (fromBottomBar) {
-            Log.d("Soto", "fromBottomBar = $fromBottomBar")
             snapshotFlow { true }.first()
             delay(150)
             focusRequester.requestFocus()
@@ -67,15 +86,13 @@ fun RiwayatPage(
     }
 
     if (currentEmail == null) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text("User belum login")
         }
         return
     }
 
+    // Filter absen berdasarkan email user
     val userAbsens = absenTime
         .filter { it.name == currentEmail }
         .sortedByDescending { it.timestamp?.toDate() }
@@ -87,7 +104,7 @@ fun RiwayatPage(
             .verticalScroll(rememberScrollState())
             .background(appColors.primaryBackground)
             .padding(horizontal = 12.dp, vertical = 16.dp)
-            .semantics(mergeDescendants = true) { // ⬅️ penting agar TalkBack anggap ini satu grup
+            .semantics(mergeDescendants = true) {
                 isTraversalGroup = true
                 traversalIndex = 1f
             },
@@ -111,6 +128,7 @@ fun RiwayatPage(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Tampilan jika belum ada data
         if (userAbsens.isEmpty()) {
             Box(
                 modifier = Modifier
@@ -182,6 +200,7 @@ fun RiwayatPage(
         }
     }
 
+    // Popup menampilkan foto jika diklik
     if (selectedPhoto != null) {
         Dialog(onDismissRequest = { selectedPhoto = null }) {
             Surface(
@@ -211,7 +230,11 @@ fun RiwayatPage(
     }
 }
 
-
+/**
+ * Memformat `timeNote` berdasarkan jenis absen.
+ * - Untuk "masuk": tampilkan "Telat x menit" atau "Lebih cepat x menit"
+ * - Untuk "keluar": tampilkan apa adanya
+ */
 fun formatTimeNoteByType(timeNote: String?, type: String?): String {
     if (timeNote.isNullOrBlank()) return ""
     return when (type) {
@@ -221,6 +244,10 @@ fun formatTimeNoteByType(timeNote: String?, type: String?): String {
     }
 }
 
+/**
+ * Mengubah notasi waktu seperti "+15" atau "-10" menjadi kalimat natural:
+ * "+15" → "Lebih cepat 15 menit", "-70" → "Telat 1 jam 10 menit"
+ */
 fun formatTimeNote(timeNote: String?): String {
     if (timeNote.isNullOrBlank()) return ""
     val trimmed = timeNote.trim()
