@@ -87,7 +87,7 @@ fun RiwayatPage(
             .verticalScroll(rememberScrollState())
             .background(appColors.primaryBackground)
             .padding(horizontal = 12.dp, vertical = 16.dp)
-            .semantics(mergeDescendants = true) { // ⬅️ penting agar TalkBack anggap ini satu grup
+            .semantics(mergeDescendants = true) {
                 isTraversalGroup = true
                 traversalIndex = 1f
             },

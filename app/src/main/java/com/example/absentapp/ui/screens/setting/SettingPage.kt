@@ -238,15 +238,15 @@ fun SettingPage(
             secondText = "Tidak"
         )
     }
+
     if (showDeleteAbsentSheet.value) {
         ConfirmationBottomSheet(
             title = "Hapus Riwayat Absensi",
             description = "Apakah Anda yakin ingin menghapus semua riwayat absensi?",
             iconResId = R.drawable.ilt_scared,
             sheetState = sheetState,
-            onDismiss = { showLogoutSheet.value = false },
+            onDismiss = { showDeleteAbsentSheet.value = false },
             onFirstButton = {
-
                 authViewModel.deleteAllAbsenceHistory()
                 showDeleteAbsentSheet.value = false
 

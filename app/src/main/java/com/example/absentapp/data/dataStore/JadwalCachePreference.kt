@@ -2,51 +2,68 @@ package com.example.absentapp.data.dataStore
 
 import android.content.Context
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.example.absentapp.data.dataStore.helper.jadwalDataStore
 import com.example.absentapp.data.model.Jadwal
+import com.example.absentapp.utils.toIndonesian
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.time.LocalDate
+import java.util.Locale
 
 /**
  * Kelas untuk menyimpan dan mengambil data jadwal secara lokal menggunakan DataStore.
  */
 class JadwalCachePreference(private val context: Context) {
 
-    companion object {
-        private val HARI_KEY = stringPreferencesKey("jadwal_hari")
-        private val JAM_MASUK_KEY = stringPreferencesKey("jadwal_jam_masuk")
-        private val JAM_KELUAR_KEY = stringPreferencesKey("jadwal_jam_keluar")
+
+    suspend fun saveAllWeeklySchedules(jadwalList: List<Jadwal>) {
+        context.jadwalDataStore.edit { prefs ->
+            jadwalList.forEach { jadwal ->
+                val hari = jadwal.hari.lowercase()
+                val masukKey = stringPreferencesKey("jam_masuk_$hari")
+                val keluarKey = stringPreferencesKey("jam_keluar_$hari")
+                prefs[masukKey] = jadwal.jamMasuk
+                prefs[keluarKey] = jadwal.jamKeluar
+
+                Log.d("NASIGORENG", "Simpan: hari=${jadwal.hari}, masuk=${jadwal.jamMasuk}, keluar=${jadwal.jamKeluar}")
+
+            }
+        }
     }
 
-    /**
-     * Flow untuk mendapatkan jadwal yang telah disimpan sebelumnya.
-     * Mengembalikan null jika salah satu data (hari, jam masuk, atau keluar) tidak ditemukan.
-     */
-    val cachedJadwal: Flow<Jadwal?> = context.jadwalDataStore.data.map { preferences ->
-        val hari = preferences[HARI_KEY]
-        val masuk = preferences[JAM_MASUK_KEY]
-        val keluar = preferences[JAM_KELUAR_KEY]
-        if (hari != null && masuk != null && keluar != null) {
+    suspend fun getSchedulesByDays(hari: String): Jadwal? {
+        val masukKey = stringPreferencesKey("jam_masuk_${hari.lowercase()}")
+        val keluarKey = stringPreferencesKey("jam_keluar_${hari.lowercase()}")
+
+        val prefs = context.jadwalDataStore.data.first()
+        val masuk = prefs[masukKey]
+        val keluar = prefs[keluarKey]
+
+        return if (masuk != null && keluar != null) {
             Jadwal(hari, masuk, keluar)
         } else null
     }
 
-    /**
-     * Menyimpan data jadwal ke DataStore.
-     * @param jadwal Objek Jadwal yang berisi hari, jam masuk, dan jam keluar.
-     */
-    suspend fun saveJadwal(jadwal: Jadwal) {
-        context.jadwalDataStore.edit { preferences ->
-            preferences[HARI_KEY] = jadwal.hari
-            preferences[JAM_MASUK_KEY] = jadwal.jamMasuk
-            preferences[JAM_KELUAR_KEY] = jadwal.jamKeluar
-        }
+    @RequiresApi(Build.VERSION_CODES.O)
+    suspend fun getSchedulesToday(): Jadwal? {
+        val hari = LocalDate.now().dayOfWeek.toIndonesian()
+        return getSchedulesByDays(hari)
     }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    suspend fun getSchedulesTommorow(): Jadwal? {
+        val hari = LocalDate.now().plusDays(1).dayOfWeek.toIndonesian()
+        return getSchedulesByDays(hari)
+    }
+
+
+
+
 
     /**
      * Mengambil jam masuk berdasarkan hari saat ini.
@@ -54,10 +71,10 @@ class JadwalCachePreference(private val context: Context) {
      */
     @RequiresApi(Build.VERSION_CODES.O)
     suspend fun getJamMasukForToday(): String {
-        val hari = LocalDate.now().dayOfWeek.name.lowercase()
-        val key = stringPreferencesKey("jam_masuk_$hari")
-        val prefs = context.jadwalDataStore.data.first()
-        return prefs[key] ?: "null"
+        val jadwal = getSchedulesToday()
+        val jamMasuk = jadwal?.jamMasuk ?: "null"
+        Log.d("PUTUAYU", "Hari: ${jadwal?.hari} | Jam Masuk: $jamMasuk")
+        return jamMasuk
     }
 
     /**
@@ -66,4 +83,6 @@ class JadwalCachePreference(private val context: Context) {
     suspend fun clearJadwal() {
         context.jadwalDataStore.edit { it.clear() }
     }
+
+
 }

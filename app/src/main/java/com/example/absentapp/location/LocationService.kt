@@ -58,12 +58,11 @@ class LocationService : Service() {
     @SuppressLint("NotificationPermission")
     @RequiresApi(Build.VERSION_CODES.Q)
     private fun start() {
-
         // Notifikasi supaya service bisa jalan sebagai ForegroundService
         val notification = NotificationCompat.Builder(this, "location")
+            .setSmallIcon(R.drawable.img_logo)
             .setContentTitle("Pelacakan Lokasi Aktif")
             .setContentText("Sedang mencatat lokasi Anda...")
-            .setSmallIcon(R.drawable.ic_launcher_background)
             .setOngoing(true) // nggak bisa dihapus user
 
         val notificationManager =

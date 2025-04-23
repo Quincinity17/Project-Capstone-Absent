@@ -153,9 +153,14 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun scheduleReminderWorker(context: Context) {
+
+
         val request = OneTimeWorkRequestBuilder<AbsentReminderWorker>()
             .setInitialDelay(10, TimeUnit.SECONDS) // Worker jalan setelah 10 detik
             .build()
+
+        Log.d("NASIPADANG", "kepanggil di Main membuat $request.")
+
         //        val request = PeriodicWorkRequestBuilder<ReminderWorker>(15, TimeUnit.MINUTES)
 //            .setConstraints(
 //                Constraints.Builder()

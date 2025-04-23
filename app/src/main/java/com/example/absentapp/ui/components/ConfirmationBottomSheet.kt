@@ -51,11 +51,8 @@ fun ConfirmationBottomSheet(
             Image(
                 painter = painterResource(iconResId),
                 contentDescription = null,
-                modifier = Modifier.size(200.dp)
+                modifier = Modifier.size(180.dp)
             )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -67,15 +64,16 @@ fun ConfirmationBottomSheet(
             ) {
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 24.sp
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
                     text = description,
-                    style = MaterialTheme.typography.bodyMedium
+                    fontSize = 18.sp,
+                    textAlign = TextAlign.Center
                 )
             }
 
