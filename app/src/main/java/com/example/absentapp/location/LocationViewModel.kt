@@ -1,8 +1,11 @@
 package com.example.absentapp.location
 
+import android.annotation.SuppressLint
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.example.absentapp.utils.LocationUtils
+import com.google.android.gms.location.LocationServices
 import com.google.firebase.database.FirebaseDatabase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -61,10 +64,11 @@ class LocationViewModel : ViewModel() {
             val distance = LocationUtils(lat, long, refLat, refLng)
             val formattedDistance = "%.0f".format(distance)
 
+            Log.d("KACANGTANAH", "lat $lat ; long: $long ; refLat: $refLat ; refLng: $refLng")
             Log.e("KACANGTANAH", "Error: $distance")
 
 
-            _location.value = "Lokasi Anda berada di (%.5f, %.5f), berjarak ${formattedDistance}m dari titik absensi".format(lat, long)
+            _location.value = "Lokasi Anda berada di (%.5f, %.5f), berjarakk ${formattedDistance}m dari titik absensi".format(lat, long)
             _currentDistance.value = distance
             _distanceLimit.value = limit
             _isFetchingLocation.value = false
@@ -89,24 +93,39 @@ class LocationViewModel : ViewModel() {
     /**
      * Memperbarui latitude dan longitude di Firebase berdasarkan lokasi user saat ini.
      */
-    fun updateReferenceLocation() {
-
-        fetchReferenceLocation { refLat, refLng, limit ->
+    fun updateReferenceLocation(context: Context) {
+        getCurrentLocationSimple(context) { lat, long ->
             val ref = FirebaseDatabase.getInstance().getReference("reference_location")
+
+            Log.d("ROTIPANGGANG", "Updating reference location to lat=$lat, long=$long")
+
             val updates = mapOf(
-                "latitude" to refLat,
-                "longitude" to refLng
+                "latitude" to lat,
+                "longitude" to long
             )
 
             ref.updateChildren(updates)
                 .addOnSuccessListener {
-                    Log.d("LocationViewModel", "Reference location updated to lat=$refLat, long=$refLng")
+                    Log.d("LocationViewModel", "Reference location updated to lat=$lat, long=$long")
                 }
                 .addOnFailureListener {
                     Log.e("LocationViewModel", "Failed to update reference location: ${it.message}")
                 }
         }
+    }
 
+
+    @SuppressLint("MissingPermission")
+    fun getCurrentLocationSimple(context: Context, onResult: (Double, Double) -> Unit) {
+        val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
+        fusedLocationClient.lastLocation
+            .addOnSuccessListener { location ->
+                if (location != null) {
+                    onResult(location.latitude, location.longitude)
+                } else {
+                    Log.e("LocationViewModel", "Gagal mendapatkan lokasi saat ini")
+                }
+            }
     }
 
 }

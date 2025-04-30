@@ -1,6 +1,6 @@
 package com.example.absentapp.data.model
 
-data class AbsentStamp(
+data class AttendanceStamp(
     val name: String = "",
     val timestamp: com.google.firebase.Timestamp? = null,
     val uid: String = "",

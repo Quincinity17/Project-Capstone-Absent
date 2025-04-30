@@ -15,6 +15,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -22,6 +23,8 @@ import androidx.navigation.navArgument
 import com.example.absentapp.auth.AuthViewModel
 import com.example.absentapp.location.LocationViewModel
 import com.example.absentapp.navigation.BottomNavigationBar
+import com.example.absentapp.ui.screens.absent.AbsenceViewModel
+import com.example.absentapp.ui.screens.absent.AbsentPage
 import com.example.absentapp.ui.screens.homepage.HomePage
 import com.example.absentapp.ui.screens.riwayat.RiwayatPage
 import com.example.absentapp.ui.screens.setting.SettingPage
@@ -32,8 +35,9 @@ import kotlinx.coroutines.delay
 @Composable
 fun MainScreen(
     authViewModel: AuthViewModel,
+    absenceViewModel: AbsenceViewModel,
     locationViewModel: LocationViewModel,
-    rootNavController: NavController
+    rootNavController: NavHostController
 ) {
     val bottomNavController = rememberNavController()
     val appColors = LocalAppColors.current
@@ -99,6 +103,25 @@ fun MainScreen(
                     authViewModel = authViewModel
                 )
             }
+            //Halaman Absent
+            composable(
+                route = "absentPage?fromBottomBar={fromBottomBar}",
+                arguments = listOf(
+                    navArgument("fromBottomBar") {
+                        defaultValue = "false"
+                    }
+                )
+            ) { backStackEntry ->
+                val fromBottomBar = backStackEntry.arguments?.getString("fromBottomBar") == "true"
+
+                AbsentPage(
+                    fromBottomBar = fromBottomBar,
+                    absenceViewModel = absenceViewModel,
+                    authViewModel = authViewModel,
+                    navController = rootNavController
+
+                )
+            }
 
             //Halaman Setting
             composable(
@@ -114,6 +137,8 @@ fun MainScreen(
                 SettingPage(
                     fromBottomBar = fromBottomBar,
                     locationViewModel = locationViewModel,
+                    absenceViewModel = absenceViewModel,
+
 
                     authViewModel = authViewModel,
                     rootNavController = rootNavController

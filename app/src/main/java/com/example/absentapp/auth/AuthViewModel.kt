@@ -6,7 +6,7 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.example.absentapp.data.model.AbsentStamp
+import com.example.absentapp.data.model.AttendanceStamp
 import com.example.absentapp.data.model.Jadwal
 import com.example.absentapp.utils.sanitizeTimeInput
 import com.google.firebase.auth.FirebaseAuth
@@ -35,7 +35,7 @@ class AuthViewModel : ViewModel() {
     val authState: LiveData<AuthState> = _authState
 
     // StateFlow untuk menyimpan daftar waktu absen (realtime)
-    private val _absenTime = MutableStateFlow<List<AbsentStamp>>(emptyList())
+    private val _absenTime = MutableStateFlow<List<AttendanceStamp>>(emptyList())
     val absenTime = _absenTime.asStateFlow()
 
     private val _isUpdating = MutableStateFlow(false)
@@ -81,18 +81,18 @@ class AuthViewModel : ViewModel() {
      */
     fun login(email: String, password: String) {
         if (email.isBlank() || password.isBlank()) {
-            _authState.value = AuthState.Error("Email or pass can't be empty")
+            _authState.value = AuthState.Error("Email atau password tidak boleh kosong")
             return
         }
-
         _authState.value = AuthState.Loading
         auth.signInWithEmailAndPassword(email, password)
-            .addOnCompleteListener { task ->
-                _authState.value = if (task.isSuccessful) {
-                    AuthState.Authenticated
-                } else {
-                    AuthState.Error(task.exception?.message ?: "Unknown error")
-                }
+            .addOnSuccessListener {
+                // Login berhasil dan currentUser sudah tersedia
+                getAbsentTime()  // Perbarui data absensi jika perlu
+                _authState.value = AuthState.Authenticated
+            }
+            .addOnFailureListener { e ->
+                _authState.value = AuthState.Error(e.message ?: "Login gagal")
             }
     }
 
@@ -101,18 +101,18 @@ class AuthViewModel : ViewModel() {
      */
     fun signup(email: String, password: String) {
         if (email.isBlank() || password.isBlank()) {
-            _authState.value = AuthState.Error("Email or pass can't be empty")
+            _authState.value = AuthState.Error("Email atau password tidak boleh kosong")
             return
         }
-
         _authState.value = AuthState.Loading
         auth.createUserWithEmailAndPassword(email, password)
-            .addOnCompleteListener { task ->
-                _authState.value = if (task.isSuccessful) {
-                    AuthState.Authenticated
-                } else {
-                    AuthState.Error(task.exception?.message ?: "Unknown error")
-                }
+            .addOnSuccessListener {
+                // Registrasi berhasil (user otomatis sign-in)
+                getAbsentTime()
+                _authState.value = AuthState.Authenticated
+            }
+            .addOnFailureListener { e ->
+                _authState.value = AuthState.Error(e.message ?: "Registrasi gagal")
             }
     }
 

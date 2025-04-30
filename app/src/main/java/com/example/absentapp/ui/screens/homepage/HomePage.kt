@@ -29,6 +29,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -51,6 +52,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.absentapp.R
+import com.example.absentapp.auth.AuthState
 import com.example.absentapp.auth.AuthViewModel
 import com.example.absentapp.data.dataStore.JadwalCachePreference
 import com.example.absentapp.data.model.Jadwal
@@ -87,6 +89,8 @@ fun HomePage(
     val distance by locationViewModel.currentDistance.collectAsState()
     val isLoadingLokasi by locationViewModel.isFetchingLocation.collectAsState()
     val distanceLimit by locationViewModel.distanceLimit.collectAsState()
+    val authState by authViewModel.authState.observeAsState()
+
 
     val absenTime by authViewModel.absenTime.collectAsState()
     val isUpdating by authViewModel.isUpdating.collectAsState()
@@ -100,6 +104,17 @@ fun HomePage(
     val appColors = LocalAppColors.current
 
     val focusRequester = remember { FocusRequester() }
+    val isUserLoggedIn = authState is AuthState.Authenticated || authState is AuthState.Success
+    val enabled = isUserLoggedIn && !isUpdating && (distance <= distanceLimit)
+
+    Log.d("KACANGALMOND",
+                """
+                    authState : ${authState}
+                    AuthState.Authenticated : ${AuthState.Authenticated}
+                    isUpdating : ${isUpdating}
+                    
+                """.trimIndent()
+            )
 
     BackHandler {
         showExitDialog = true
@@ -229,9 +244,6 @@ fun HomePage(
                 )
             }
 
-            Log.d("KACANGREBUS", "distance : $distance ; distanceLimit : $distanceLimit")
-
-            Log.d("KACANGREBUS", "isupdating : $isUpdating ; distance : ${distance<=distanceLimit}")
 
 
             AbsenGlassCard(
@@ -242,7 +254,7 @@ fun HomePage(
                     .semantics { heading() }
                 ,
                 currentTime = LocalDateTime.now(),
-                enabled = distance <= distanceLimit && !isUpdating,
+                enabled = enabled,
                 onClickAbsen = {
                     navController.navigate("camera")
                 }
