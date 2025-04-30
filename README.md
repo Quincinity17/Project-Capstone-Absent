@@ -21,8 +21,8 @@
 
 ## 📸 Tampilan Aplikasi
 
-### Halaman Absen
+### 🌞 Light Mode
 ![Halaman Absen](screenshots/absen-screen.png)
 
-### Halaman Riwayat
+### 🌙 Dark Mode
 ![Riwayat Absensi](screenshots/history-screen.png)
