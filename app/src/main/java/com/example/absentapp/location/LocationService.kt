@@ -79,14 +79,16 @@ class LocationService : Service() {
 
 
                 val distance = LocationBridge.viewModel?.currentDistance?.value ?: 100
+                Log.d("KACANGTANAH", "distance $distance")
+
                 val formattedDistance = String.format("%.0f", distance)
 
                 val latText = String.format("%.5f", location.latitude)
                 val longText = String.format("%.5f", location.longitude)
 
-                val newText = "Lokasi Anda berada di ($latText, $longText), berjarak ${formattedDistance}m dari titik absensi"
+                val newText = "Lokasi Anda berada di (${location.latitude}, ${location.longitude}), bberjarak ${formattedDistance}m dari titik absensi"
 
-                Log.e("KACANGTANAH", "Error: $distance")
+                Log.e("KACANGTANAH", "eError: $distance")
 
 
                 notificationManager.notify(
@@ -104,6 +106,20 @@ class LocationService : Service() {
             ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
         )
     }
+
+    @SuppressLint("MissingPermission")
+    private fun getCurrentLocationSimple(onResult: (Double, Double) -> Unit) {
+        LocationServices.getFusedLocationProviderClient(this).lastLocation
+            .addOnSuccessListener { location ->
+                if (location != null) {
+                    onResult(location.latitude, location.longitude)
+                } else {
+                    Log.e("LocationService", "Gagal mendapatkan lokasi saat ini")
+                }
+            }
+    }
+
+
 
 
 

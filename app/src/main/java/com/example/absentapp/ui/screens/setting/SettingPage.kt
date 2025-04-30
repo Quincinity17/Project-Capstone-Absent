@@ -1,6 +1,7 @@
 package com.example.absentapp.ui.screens.setting
 
 import android.os.Build
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Column
@@ -47,6 +48,7 @@ import com.example.absentapp.auth.AuthViewModel
 import com.example.absentapp.data.dataStore.NotificationPreference
 import com.example.absentapp.location.LocationViewModel
 import com.example.absentapp.ui.components.ConfirmationBottomSheet
+import com.example.absentapp.ui.screens.absent.AbsenceViewModel
 import com.example.absentapp.ui.theme.LocalAppColors
 import com.example.absentapp.utils.cancelAbsenAlarm
 import com.example.absentapp.utils.scheduleAllWeekAbsenAlarms
@@ -60,6 +62,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun SettingPage(
     fromBottomBar: Boolean,
+    absenceViewModel: AbsenceViewModel,
     locationViewModel: LocationViewModel,
     authViewModel: AuthViewModel,
     rootNavController: NavController) {
@@ -74,6 +77,9 @@ fun SettingPage(
     val showLogoutSheet = remember { mutableStateOf(false) }
     val showDeleteAbsentSheet = remember { mutableStateOf(false) }
     val changeLocation = remember { mutableStateOf(false) }
+    val showDeletePerizinan = remember { mutableStateOf(false) }
+
+
 
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -98,7 +104,7 @@ fun SettingPage(
             .padding(horizontal = 12.dp, vertical = 16.dp)
     ) {
         Text(
-            "Setting Page",
+            "Halaman Pengaturan",
             modifier = Modifier
                 .focusRequester(focusRequester)
                 .focusable(),
@@ -210,7 +216,7 @@ fun SettingPage(
                 color = appColors.primaryText,
             )
         Text(
-            "Hanya untuk keperluan testing. Fitur ini tidak akan ditampilkan saat aplikasi dipublikasikan.",
+            "Hanya untuk keperluan testing.",
             modifier = Modifier
                 .focusRequester(focusRequester)
                 .focusable()
@@ -271,7 +277,39 @@ fun SettingPage(
                     color = appColors.primaryText,
                 )
                 Text(
-                    text = "Anda akan menghapus lokasi absensi anda berdasarkan lokasi saat ini",
+                    text = "Mengganti lokasi absensi yang ada dengan lokasi Anda saat ini",
+                    fontSize = 12.sp,
+                    color = appColors.secondaryText,
+                    lineHeight = 16.sp
+                )
+            }
+
+            Icon(
+                painter = painterResource(id = R.drawable.ic_arrow),
+                modifier = Modifier.size(24.dp),
+                contentDescription = "",
+                tint = appColors.primaryText
+            )
+        }
+        // hapus perizinan
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 18.dp)
+                .clickable {
+                    showDeletePerizinan.value = true
+
+                }
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Hapus seluruh perizinan ",
+                    fontWeight = FontWeight.Bold,
+                    color = appColors.primaryText,
+                )
+                Text(
+                    text = "Menghapus seluruh perizinan",
                     fontSize = 12.sp,
                     color = appColors.secondaryText,
                     lineHeight = 16.sp
@@ -287,6 +325,8 @@ fun SettingPage(
         }
 
     }
+
+
 
 
 
@@ -322,11 +362,9 @@ fun SettingPage(
             onFirstButton = {
                 changeLocation.value = false
 
-                locationViewModel.updateReferenceLocation()
+                locationViewModel.updateReferenceLocation(context)
 
-                rootNavController.navigate("login") {
-                    popUpTo("main") { inclusive = true }
-                }
+
 
             },
             onSecondButton = {
@@ -375,6 +413,8 @@ fun SettingPage(
                     showDeleteAbsentSheet.value = false
 
 
+
+
                 },
                 onSecondButton = {
                     showDeleteAbsentSheet.value = false
@@ -383,6 +423,35 @@ fun SettingPage(
                 secondText = "Tidak"
             )
         }
+    if (showDeletePerizinan.value) {
+        ConfirmationBottomSheet(
+            title = "Hapus seluruh perizinan",
+            description = "Apakah Anda yakin ingin menghapus seluruh perizinan",
+            iconResId = R.drawable.ilt_logout,
+            sheetState = sheetState,
+            onDismiss = { showLogoutSheet.value = false },
+            onFirstButton = {
+                showDeletePerizinan.value = false
+
+                absenceViewModel.deleteAllAbsences(
+                    onSuccess = {
+                        Log.d("DELETE", "Semua perizinan dihapus.")
+                    },
+                    onFailure = {
+                        Log.e("DELETE", "Gagal hapus perizinan: $it")
+                    }
+                )
+
+
+
+            },
+            onSecondButton = {
+                showDeletePerizinan.value = false
+            },
+            firstText = "Ya, saya yakin",
+            secondText = "Tidak"
+        )
+    }
     }
 
 

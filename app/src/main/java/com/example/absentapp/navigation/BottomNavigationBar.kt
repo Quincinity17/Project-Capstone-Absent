@@ -54,14 +54,16 @@ fun BottomNavigationBar(
 
     val items = listOf(
         BottomNavigationItem("homePage", "Homepage", painterResource(R.drawable.ic_home_filled), painterResource(R.drawable.ic_home_unfilled)),
-        BottomNavigationItem("riwayatPage", "History", painterResource(R.drawable.ic_history_filled), painterResource(R.drawable.ic_history_unfilled)),
-        BottomNavigationItem("settingPage", "Setting", painterResource(R.drawable.ic_setting_filled), painterResource(R.drawable.ic_setting_unfilled)),
+        BottomNavigationItem("riwayatPage", "Riwayat", painterResource(R.drawable.ic_history_filled), painterResource(R.drawable.ic_history_unfilled)),
+        BottomNavigationItem("absentPage", "Perizinan", painterResource(R.drawable.ic_docum_filled), painterResource(R.drawable.ic_docum_unfilled)),
+
+        BottomNavigationItem("settingPage", "Pengaturan", painterResource(R.drawable.ic_setting_filled), painterResource(R.drawable.ic_setting_unfilled)),
     )
     val appColors = LocalAppColors.current
 
 
     Box(modifier = Modifier
-        .offset(y = 32.dp)
+        .offset(y = -2.dp)
         .background(appColors.primaryBackground)
         .semantics {
             // Bottom nav is read first by TalkBack

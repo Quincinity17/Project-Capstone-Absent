@@ -47,7 +47,7 @@ fun SignupPage(
     navController: NavController,
     authViewModel: AuthViewModel
 ) {
-    var name by remember { mutableStateOf("") }
+//    var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
@@ -58,7 +58,7 @@ fun SignupPage(
 
     LaunchedEffect(authState) {
         when (authState) {
-            is AuthState.Authenticated -> navController.navigate("home")
+            is AuthState.Authenticated -> navController.navigate("main")
             is AuthState.Error -> Toast.makeText(
                 context,
                 (authState as AuthState.Error).message,
@@ -89,17 +89,17 @@ fun SignupPage(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = "Sign up", color = appColors.primaryText, fontSize = 28.sp)
+            Text(text = "Buat Akun Baru", color = appColors.primaryText, fontSize = 28.sp)
             Spacer(modifier = Modifier.height(4.dp))
-            Text(text = "Please enter login details below", color = appColors.secondaryText, fontSize = 14.sp)
+            Text(text = "Silakan isi data untuk mendaftar", color = appColors.secondaryText, fontSize = 14.sp)
             Spacer(modifier = Modifier.height(24.dp))
 
-            CustomTextField(
-                value = name,
-                onValueChange = { name = it },
-                placeholder = "Name",
-                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next)
-            )
+//            CustomTextField(
+//                value = name,
+//                onValueChange = { name = it },
+//                placeholder = "Name",
+//                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next)
+//            )
 
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -120,7 +120,7 @@ fun SignupPage(
                 keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done)
             )
             Text(
-                text = "Password setidaknya berisi 6 karakter",
+                text = "Gunakan minimal 6 karakter untuk kata sandi",
                 color = appColors.secondaryText,
                 fontSize = 12.sp,
 
@@ -142,7 +142,7 @@ fun SignupPage(
                     .height(48.dp)
                     .clip(RoundedCornerShape(8.dp))
                     .background(
-                        brush = if (name.isNotBlank() && email.isNotBlank() && password.isNotBlank()) {
+                        brush = if (email.isNotBlank() && password.isNotBlank()) {
                             Brush.horizontalGradient(
                                 colors = listOf(Color(0xFF024494), Color(0xFF009285))
                             )
@@ -159,7 +159,7 @@ fun SignupPage(
                     disabledContentColor = Color.White.copy(alpha = 0.5f)
                 ),
                 contentPadding = ButtonDefaults.ContentPadding,
-                enabled = name.isNotBlank() && email.isNotBlank() && password.isNotBlank()
+                enabled =  email.isNotBlank() && password.isNotBlank()
             ) {
                 Text("Sign up", color = Color.White)
             }

@@ -29,6 +29,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -38,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -50,6 +52,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.absentapp.R
+import com.example.absentapp.auth.AuthState
 import com.example.absentapp.auth.AuthViewModel
 import com.example.absentapp.data.dataStore.JadwalCachePreference
 import com.example.absentapp.data.model.Jadwal
@@ -79,21 +82,15 @@ fun HomePage(
     val context = LocalContext.current
     val currentEmail = authViewModel.getCurrentUserEmail()
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 6517416 (Finishing Iterasi 1)
     val activity = context as? Activity
     val jadwalPrefs = remember { JadwalCachePreference(context) }
     val coroutineScope = rememberCoroutineScope()
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 6517416 (Finishing Iterasi 1)
     val distance by locationViewModel.currentDistance.collectAsState()
     val isLoadingLokasi by locationViewModel.isFetchingLocation.collectAsState()
     val distanceLimit by locationViewModel.distanceLimit.collectAsState()
+    val authState by authViewModel.authState.observeAsState()
+
 
     val absenTime by authViewModel.absenTime.collectAsState()
     val isUpdating by authViewModel.isUpdating.collectAsState()
@@ -101,18 +98,23 @@ fun HomePage(
     var jadwalHariIni by remember { mutableStateOf<Jadwal?>(null) }
     var jadwalBesok by remember { mutableStateOf<Jadwal?>(null) }
 
-<<<<<<< HEAD
-
-
-
-=======
->>>>>>> 6517416 (Finishing Iterasi 1)
 
     var showExitDialog by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val appColors = LocalAppColors.current
 
     val focusRequester = remember { FocusRequester() }
+    val isUserLoggedIn = authState is AuthState.Authenticated || authState is AuthState.Success
+    val enabled = isUserLoggedIn && !isUpdating && (distance <= distanceLimit)
+
+    Log.d("KACANGALMOND",
+                """
+                    authState : ${authState}
+                    AuthState.Authenticated : ${AuthState.Authenticated}
+                    isUpdating : ${isUpdating}
+                    
+                """.trimIndent()
+            )
 
     BackHandler {
         showExitDialog = true
@@ -163,11 +165,7 @@ fun HomePage(
     val jamMasukHariIni = jadwalHariIni?.jamMasuk
     val jamKeluarHariIni = jadwalHariIni?.jamKeluar
 
-<<<<<<< HEAD
-    val jamMasukBesok = jadwalBesok?.jamKeluar
-=======
     val jamMasukBesok = jadwalBesok?.jamMasuk
->>>>>>> 6517416 (Finishing Iterasi 1)
 
 
     val now = Calendar.getInstance()
@@ -240,23 +238,13 @@ fun HomePage(
 
                 Text(
                     text = "Selamat datang",
-<<<<<<< HEAD
-                    color = appColors.primaryText,
-=======
                     color = Color.Black,
->>>>>>> 6517416 (Finishing Iterasi 1)
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 16.sp
                 )
             }
 
-<<<<<<< HEAD
-=======
-            Log.d("KACANGREBUS", "distance : $distance ; distanceLimit : $distanceLimit")
 
-            Log.d("KACANGREBUS", "isupdating : $isUpdating ; distance : ${distance<=distanceLimit}")
-
->>>>>>> 6517416 (Finishing Iterasi 1)
 
             AbsenGlassCard(
                 modifier = Modifier
@@ -266,7 +254,7 @@ fun HomePage(
                     .semantics { heading() }
                 ,
                 currentTime = LocalDateTime.now(),
-                enabled = distance <= distanceLimit && !isUpdating,
+                enabled = enabled,
                 onClickAbsen = {
                     navController.navigate("camera")
                 }
@@ -293,11 +281,7 @@ fun HomePage(
         jadwalHariIni?.let { jadwal ->
             Column {
                 Text(
-<<<<<<< HEAD
-                    text = "Jadwal Anda hari ini ya :)",
-=======
                     text = "Jadwal Anda hari ini",
->>>>>>> 6517416 (Finishing Iterasi 1)
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp,
                     modifier = Modifier

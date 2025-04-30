@@ -31,6 +31,7 @@ import com.example.absentapp.location.LocationBridge
 import com.example.absentapp.location.LocationService
 import com.example.absentapp.location.LocationViewModel
 import com.example.absentapp.navigation.NavigationHost
+import com.example.absentapp.ui.screens.absent.AbsenceViewModel
 import com.example.absentapp.ui.screens.camera.CameraViewModel
 import com.example.absentapp.ui.theme.AbsentAppTheme
 import com.example.absentapp.utils.scheduleAllWeekAbsenAlarms
@@ -91,6 +92,8 @@ class MainActivity : ComponentActivity() {
         val authViewModel = AuthViewModel()
         val locationViewModel = LocationViewModel()
         val cameraViewModel = CameraViewModel()
+        val absenceViewModel = AbsenceViewModel()
+
         LocationBridge.viewModel = locationViewModel
 
         // Buat notification channel untuk pelacakan lokasi
@@ -135,7 +138,8 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier.padding(innerPadding),
                         authViewModel = authViewModel,
                         locationViewModel = locationViewModel,
-                        cameraViewModel = cameraViewModel
+                        cameraViewModel = cameraViewModel,
+                        absenceViewModel = absenceViewModel
                     )
                 }
             }

@@ -80,9 +80,9 @@ fun LoginPage(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = "Log in",color = appColors.primaryText, fontSize = 28.sp)
+            Text(text = "Masuk",color = appColors.primaryText, fontSize = 28.sp)
             Spacer(modifier = Modifier.height(4.dp))
-            Text(text = "Please enter your credentials", color = appColors.secondaryText, fontSize = 14.sp)
+            Text(text = "Silakan masukkan email dan kata sandi", color = appColors.secondaryText, fontSize = 14.sp)
             Spacer(modifier = Modifier.height(24.dp))
 
             // Email Field

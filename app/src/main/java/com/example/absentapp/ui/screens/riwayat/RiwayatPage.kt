@@ -2,6 +2,7 @@ package com.example.absentapp.ui.screens.riwayat
 
 import android.graphics.BitmapFactory
 import android.util.Base64
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
@@ -92,10 +93,20 @@ fun RiwayatPage(
         return
     }
 
+    Log.d("DAUNKELOR", "absen time ${absenTime.size}")
+    Log.d("DAUNKELOR", "email saat ini${currentEmail}")
+
+    absenTime.forEach {
+        Log.d("DAUNKELOR", "absen: name=${it.name}, timestamp=${it.timestamp}, type=${it.type}")
+    }
+
+
     // Filter absen berdasarkan email user
     val userAbsens = absenTime
         .filter { it.name == currentEmail }
         .sortedByDescending { it.timestamp?.toDate() }
+
+//    Log.d("DAUNKELOR", "userabsens${userAbsens}")
 
     Column(
         modifier = Modifier
