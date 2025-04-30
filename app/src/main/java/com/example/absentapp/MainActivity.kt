@@ -175,36 +175,9 @@ class MainActivity : ComponentActivity() {
         context.stopService(intent)
     }
 
-<<<<<<< HEAD
-    private fun scheduleReminderWorker(context: Context) {
-
-
-        val request = OneTimeWorkRequestBuilder<AbsentReminderWorker>()
-            .setInitialDelay(10, TimeUnit.SECONDS) // Worker jalan setelah 10 detik
-            .build()
-
-        Log.d("NASIPADANG", "kepanggil di Main membuat $request.")
-
-        //        val request = PeriodicWorkRequestBuilder<ReminderWorker>(15, TimeUnit.MINUTES)
-//            .setConstraints(
-//                Constraints.Builder()
-//                    .setRequiresBatteryNotLow(true)
-//                    .build()
-//            )
-//            .build()
-        WorkManager.getInstance(context).enqueue(request)
-
-//        WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-//            "reminderWorker",
-//            ExistingPeriodicWorkPolicy.KEEP,
-//            request
-//        )
-    }
-=======
     /**
      * Sinkronisasi jadwal absen dari Firestore ke DataStore
      */
->>>>>>> 6517416 (Finishing Iterasi 1)
     fun syncJadwalFromFirestore(context: Context) {
         val firestore = FirebaseFirestore.getInstance()
         val dataStore = context.jadwalDataStore

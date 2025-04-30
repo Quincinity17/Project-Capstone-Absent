@@ -42,16 +42,6 @@ fun AbsenStatusBanner(
     val now = LocalTime.now()
 
     // Parsing jadwalMasuk dan jadwalPulang dari String ke LocalTime?
-<<<<<<< HEAD
-    val parsedMasuk = runCatching { LocalTime.parse(jadwalMasuk) }.getOrNull()
-    val parsedPulang = runCatching { LocalTime.parse(jadwalPulang) }.getOrNull()
-
-//    Log.d("AYAMGORENG", "Masuk: $parsedMasuk | Pulang: $parsedPulang | Besok: $jamMasukBesok")
-//    Log.d("AYAMGORENG", "Sebelum Masuk : ${    parsedMasuk != null && now.isBefore(parsedMasuk)}")
-//    Log.d("AYAMGORENG", "Sebelum Masuk tapi belum pulang: ${    parsedMasuk != null && parsedPulang != null &&
-//            now.isAfter(parsedMasuk) && now.isBefore(parsedPulang)}")
-//    Log.d("AYAMGORENG", "Sudah pulang: ${    parsedPulang != null && now.isAfter(parsedPulang)}")
-=======
     Log.d("AYAMGORENG", "jadwal masuk $jadwalMasuk")
     Log.d("AYAMGORENG", "jadwal pulang $jadwalPulang")
     Log.d("AYAMGORENG", "jadwal masuk bsk $jamMasukBesok")
@@ -64,7 +54,6 @@ fun AbsenStatusBanner(
     Log.d("AYAMGORENG", "Sebelum Masuk tapi belum pulang: ${    parsedMasuk != null && parsedPulang != null &&
             now.isAfter(parsedMasuk) && now.isBefore(parsedPulang)}")
     Log.d("AYAMGORENG", "Sudah pulang: ${    parsedPulang != null && now.isAfter(parsedPulang)}")
->>>>>>> 6517416 (Finishing Iterasi 1)
 
 
 

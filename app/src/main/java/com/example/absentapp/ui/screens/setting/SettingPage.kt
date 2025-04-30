@@ -205,16 +205,16 @@ fun SettingPage(
             )
         }
 
-            Text(
-                "Developer Setting",
-                modifier = Modifier
-                    .focusRequester(focusRequester)
-                    .focusable()
-                    .padding(top = 62.dp),
-                fontWeight = FontWeight.Bold,
-                fontSize = 24.sp,
-                color = appColors.primaryText,
-            )
+        Text(
+            "Developer Setting",
+            modifier = Modifier
+                .focusRequester(focusRequester)
+                .focusable()
+                .padding(top = 62.dp),
+            fontWeight = FontWeight.Bold,
+            fontSize = 24.sp,
+            color = appColors.primaryText,
+        )
         Text(
             "Hanya untuk keperluan testing.",
             modifier = Modifier
@@ -330,28 +330,28 @@ fun SettingPage(
 
 
 
-        if (showLogoutSheet.value) {
-            ConfirmationBottomSheet(
-                title = "Logout Akun",
-                description = "Apakah Anda yakin ingin logout akun dari aplikasi?",
-                iconResId = R.drawable.ilt_logout,
-                sheetState = sheetState,
-                onDismiss = { showLogoutSheet.value = false },
-                onFirstButton = {
-                    showLogoutSheet.value = false
-                    authViewModel.signout()
-                    rootNavController.navigate("login") {
-                        popUpTo("main") { inclusive = true }
-                    }
+    if (showLogoutSheet.value) {
+        ConfirmationBottomSheet(
+            title = "Logout Akun",
+            description = "Apakah Anda yakin ingin logout akun dari aplikasi?",
+            iconResId = R.drawable.ilt_logout,
+            sheetState = sheetState,
+            onDismiss = { showLogoutSheet.value = false },
+            onFirstButton = {
+                showLogoutSheet.value = false
+                authViewModel.signout()
+                rootNavController.navigate("login") {
+                    popUpTo("main") { inclusive = true }
+                }
 
-                },
-                onSecondButton = {
-                    showLogoutSheet.value = false
-                },
-                firstText = "Ya, saya yakin",
-                secondText = "Tidak"
-            )
-        }
+            },
+            onSecondButton = {
+                showLogoutSheet.value = false
+            },
+            firstText = "Ya, saya yakin",
+            secondText = "Tidak"
+        )
+    }
     if (changeLocation.value) {
         ConfirmationBottomSheet(
             title = "Ganti Lokasi",
@@ -368,8 +368,7 @@ fun SettingPage(
 
             },
             onSecondButton = {
-<<<<<<< HEAD
-                showLogoutSheet.value = false
+                changeLocation.value = false
             },
             firstText = "Ya, saya yakin",
             secondText = "Tidak"
@@ -389,40 +388,15 @@ fun SettingPage(
 
 
 
+
             },
             onSecondButton = {
                 showDeleteAbsentSheet.value = false
-=======
-                changeLocation.value = false
->>>>>>> 6517416 (Finishing Iterasi 1)
             },
             firstText = "Ya, saya yakin",
             secondText = "Tidak"
         )
     }
-
-        if (showDeleteAbsentSheet.value) {
-            ConfirmationBottomSheet(
-                title = "Hapus Riwayat Absensi",
-                description = "Apakah Anda yakin ingin menghapus semua riwayat absensi?",
-                iconResId = R.drawable.ilt_scared,
-                sheetState = sheetState,
-                onDismiss = { showDeleteAbsentSheet.value = false },
-                onFirstButton = {
-                    authViewModel.deleteAllAbsenceHistory()
-                    showDeleteAbsentSheet.value = false
-
-
-
-
-                },
-                onSecondButton = {
-                    showDeleteAbsentSheet.value = false
-                },
-                firstText = "Ya, saya yakin",
-                secondText = "Tidak"
-            )
-        }
     if (showDeletePerizinan.value) {
         ConfirmationBottomSheet(
             title = "Hapus seluruh perizinan",
@@ -452,7 +426,4 @@ fun SettingPage(
             secondText = "Tidak"
         )
     }
-    }
-
-
-
+}

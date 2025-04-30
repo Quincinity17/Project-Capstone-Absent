@@ -53,15 +53,6 @@ class JadwalCachePreference(private val context: Context) {
     suspend fun getSchedulesToday(): Jadwal? {
         val hari = LocalDate.now().dayOfWeek.toIndonesian()
         return getSchedulesByDays(hari)
-<<<<<<< HEAD
-=======
-    }
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    suspend fun getSchedulesTommorow(): Jadwal? {
-        val hari = LocalDate.now().plusDays(1).dayOfWeek.toIndonesian()
-        return getSchedulesByDays(hari)
->>>>>>> 6517416 (Finishing Iterasi 1)
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -69,10 +60,6 @@ class JadwalCachePreference(private val context: Context) {
         val hari = LocalDate.now().plusDays(1).dayOfWeek.toIndonesian()
         return getSchedulesByDays(hari)
     }
-
-
-
-
 
     /**
      * Mengambil jam masuk berdasarkan hari saat ini.
