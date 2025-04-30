@@ -2,6 +2,7 @@ package com.example.absentapp.ui.screens.homepage
 
 import android.app.Activity
 import android.os.Build
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
@@ -78,12 +79,18 @@ fun HomePage(
     val context = LocalContext.current
     val currentEmail = authViewModel.getCurrentUserEmail()
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 6517416 (Finishing Iterasi 1)
     val activity = context as? Activity
     val jadwalPrefs = remember { JadwalCachePreference(context) }
     val coroutineScope = rememberCoroutineScope()
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 6517416 (Finishing Iterasi 1)
     val distance by locationViewModel.currentDistance.collectAsState()
     val isLoadingLokasi by locationViewModel.isFetchingLocation.collectAsState()
     val distanceLimit by locationViewModel.distanceLimit.collectAsState()
@@ -94,9 +101,12 @@ fun HomePage(
     var jadwalHariIni by remember { mutableStateOf<Jadwal?>(null) }
     var jadwalBesok by remember { mutableStateOf<Jadwal?>(null) }
 
+<<<<<<< HEAD
 
 
 
+=======
+>>>>>>> 6517416 (Finishing Iterasi 1)
 
     var showExitDialog by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -153,7 +163,11 @@ fun HomePage(
     val jamMasukHariIni = jadwalHariIni?.jamMasuk
     val jamKeluarHariIni = jadwalHariIni?.jamKeluar
 
+<<<<<<< HEAD
     val jamMasukBesok = jadwalBesok?.jamKeluar
+=======
+    val jamMasukBesok = jadwalBesok?.jamMasuk
+>>>>>>> 6517416 (Finishing Iterasi 1)
 
 
     val now = Calendar.getInstance()
@@ -219,19 +233,30 @@ fun HomePage(
                     painter = painterResource(id = R.drawable.ic_profile),
                     contentDescription = "Ikon profil",
                     modifier = Modifier.size(20.dp),
-                    tint = appColors.primaryText
+                    tint = Color.Black
                 )
 
                 Spacer(modifier = Modifier.width(8.dp))
 
                 Text(
                     text = "Selamat datang",
+<<<<<<< HEAD
                     color = appColors.primaryText,
+=======
+                    color = Color.Black,
+>>>>>>> 6517416 (Finishing Iterasi 1)
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 16.sp
                 )
             }
 
+<<<<<<< HEAD
+=======
+            Log.d("KACANGREBUS", "distance : $distance ; distanceLimit : $distanceLimit")
+
+            Log.d("KACANGREBUS", "isupdating : $isUpdating ; distance : ${distance<=distanceLimit}")
+
+>>>>>>> 6517416 (Finishing Iterasi 1)
 
             AbsenGlassCard(
                 modifier = Modifier
@@ -241,7 +266,7 @@ fun HomePage(
                     .semantics { heading() }
                 ,
                 currentTime = LocalDateTime.now(),
-                enabled = distance <= distanceLimit,
+                enabled = distance <= distanceLimit && !isUpdating,
                 onClickAbsen = {
                     navController.navigate("camera")
                 }
@@ -268,7 +293,11 @@ fun HomePage(
         jadwalHariIni?.let { jadwal ->
             Column {
                 Text(
+<<<<<<< HEAD
                     text = "Jadwal Anda hari ini ya :)",
+=======
+                    text = "Jadwal Anda hari ini",
+>>>>>>> 6517416 (Finishing Iterasi 1)
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp,
                     modifier = Modifier

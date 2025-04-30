@@ -43,11 +43,6 @@ fun RiwayatCard(
     val iconColor = if (type.lowercase() == "keluar") appColors.iconColorCheckOut else appColors.iconColorCheckIn
     val iconBgColor = if (type.lowercase() == "keluar") appColors.iconBgColorCheckOut else appColors.iconBgColorCheckIn
 
-
-
-
-
-
     Card(
         modifier = Modifier
             .fillMaxWidth()

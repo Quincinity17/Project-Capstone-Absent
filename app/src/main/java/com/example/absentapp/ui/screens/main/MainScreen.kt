@@ -113,6 +113,8 @@ fun MainScreen(
 
                 SettingPage(
                     fromBottomBar = fromBottomBar,
+                    locationViewModel = locationViewModel,
+
                     authViewModel = authViewModel,
                     rootNavController = rootNavController
                 )

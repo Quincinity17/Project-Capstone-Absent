@@ -61,6 +61,9 @@ class LocationViewModel : ViewModel() {
             val distance = LocationUtils(lat, long, refLat, refLng)
             val formattedDistance = "%.0f".format(distance)
 
+            Log.e("KACANGTANAH", "Error: $distance")
+
+
             _location.value = "Lokasi Anda berada di (%.5f, %.5f), berjarak ${formattedDistance}m dari titik absensi".format(lat, long)
             _currentDistance.value = distance
             _distanceLimit.value = limit
@@ -83,4 +86,27 @@ class LocationViewModel : ViewModel() {
                 Log.e("LocationViewModel", "Failed to update limit: ${it.message}")
             }
     }
+    /**
+     * Memperbarui latitude dan longitude di Firebase berdasarkan lokasi user saat ini.
+     */
+    fun updateReferenceLocation() {
+
+        fetchReferenceLocation { refLat, refLng, limit ->
+            val ref = FirebaseDatabase.getInstance().getReference("reference_location")
+            val updates = mapOf(
+                "latitude" to refLat,
+                "longitude" to refLng
+            )
+
+            ref.updateChildren(updates)
+                .addOnSuccessListener {
+                    Log.d("LocationViewModel", "Reference location updated to lat=$refLat, long=$refLng")
+                }
+                .addOnFailureListener {
+                    Log.e("LocationViewModel", "Failed to update reference location: ${it.message}")
+                }
+        }
+
+    }
+
 }
