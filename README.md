@@ -19,4 +19,10 @@
 - **Notifikasi dan pengingat**  
   Attend App dapat mengirimkan notifikasi pengingat absensi sesuai jadwal yang telah diatur.
 
----
+## 📸 Tampilan Aplikasi
+
+### Halaman Absen
+![Halaman Absen](screenshots/absen-screen.png)
+
+### Halaman Riwayat
+![Riwayat Absensi](screenshots/history-screen.png)
