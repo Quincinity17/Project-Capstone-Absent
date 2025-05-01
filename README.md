@@ -22,7 +22,24 @@
 ## 📸 Tampilan Aplikasi
 
 ### 🌞 Light Mode
-![Halaman Absen](screenshots/darkmode/homepage.png)(screenshots/darkmode/homepage.png)
+<p align="center">
+  <img src="screenshots/lightmode/homepage.png" alt="Beranda" width="22%" style="display:inline-block;" />
+  <img src="screenshots/lightmode/homepage_camera.png" alt="Kamera" width="22%" style="display:inline-block;" />
+  <img src="screenshots/lightmode/homepage_camera_konfirmasifoto.png" alt="Konfirmasi Kamera" width="22%" style="display:inline-block;" />
+  <img src="screenshots/lightmode/pengaturan.png" alt="Pengaturan" width="22%" style="display:inline-block;" />
+</p>
+
+<p align="center">
+  <img src="screenshots/lightmode/pengaturan_logout.png" alt="Logout" width="22%" style="display:inline-block;" />
+  <img src="screenshots/lightmode/perizinan.png" alt="Perizinan" width="22%" style="display:inline-block;" />
+  <img src="screenshots/lightmode/perizinan_detail1.png" alt="Detail Perizinan" width="22%" style="display:inline-block;" />
+  <img src="screenshots/lightmode/riwayat.png" alt="Riwayat" width="22%" style="display:inline-block;" />
+</p>
+
+<p align="center">
+  <img src="screenshots/lightmode/riwayat_buktikehadiran.png" alt="Bukti Kehadiran" width="22%" style="display:inline-block;" />
+</p>
+
 
 ### 🌙 Dark Mode
 <p align="center">
