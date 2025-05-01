@@ -37,7 +37,7 @@
 </p>
 
 <p align="center">
-  <img src="screenshots/lightmode/riwayat_buktikehadiran.png" alt="Bukti Kehadiran" width="22%" style="display:inline-block;" />
+  <img src="screenshots/lightmode/riwayat_butkikehadiran.png" alt="Bukti Kehadiran" width="22%" style="display:inline-block;" />
 </p>
 
 
