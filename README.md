@@ -26,15 +26,17 @@
 
 ### 🌙 Dark Mode
 <p align="center">
-  <img src="screenshots/darkmode/homepage.png" alt="Beranda (Dark Mode)" width="25%" />
-  <img src="screenshots/darkmode/homepage_camera.png" alt="Kamera (Dark Mode)" width="25%" />
-  <img src="screenshots/darkmode/homepage_camera_konfirmasi.png" alt="Kamera (Dark Mode)" width="25%" />
-  <img src="screenshots/darkmode/pengaturan.png" alt="Kamera (Dark Mode)" width="25%" />
+  <img src="screenshots/darkmode/homepage.png" alt="Beranda (Dark Mode)" width="22%" style="display:inline-block;" />
+  <img src="screenshots/darkmode/homepage_camera.png" alt="Kamera (Dark Mode)" width="22%" style="display:inline-block;" />
+  <img src="screenshots/darkmode/homepage_camera_konfirmasi.png" alt="Konfirmasi Kamera" width="22%" style="display:inline-block;" />
+  <img src="screenshots/darkmode/pengaturan.png" alt="Pengaturan" width="22%" style="display:inline-block;" />
 </p>
+
 <p align="center">
-  <img src="screenshots/darkmode/pengaturan_logout.png" alt="Beranda (Dark Mode)" width="25%" />
-  <img src="screenshots/darkmode/perizinan.png" alt="Kamera (Dark Mode)" width="25%" />
-  <img src="screenshots/darkmode/perizinan_detail.png" alt="Kamera (Dark Mode)" width="25%" />
-  <img src="screenshots/darkmode/riwayat_bukti.png" alt="Kamera (Dark Mode)" width="25%" />
+  <img src="screenshots/darkmode/pengaturan_logout.png" alt="Logout" width="22%" style="display:inline-block;" />
+  <img src="screenshots/darkmode/perizinan.png" alt="Perizinan" width="22%" style="display:inline-block;" />
+  <img src="screenshots/darkmode/perizinan_detail.png" alt="Detail Perizinan" width="22%" style="display:inline-block;" />
+  <img src="screenshots/darkmode/riwayat_bukti.png" alt="Riwayat" width="22%" style="display:inline-block;" />
 </p>
+
 
