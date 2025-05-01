@@ -22,7 +22,7 @@
 ## 📸 Tampilan Aplikasi
 
 ### 🌞 Light Mode
-![Halaman Absen](screenshots/absen-screen.png)
+![Halaman Absen](screenshots/darkmode/homepage.png)(screenshots/darkmode/homepage.png)
 
 ### 🌙 Dark Mode
-![Riwayat Absensi](screenshots/history-screen.png)
+![Riwayat Absensi](screenshots/darkmode/homepage.png)(screenshots/darkmode/homepage_camera.png)
