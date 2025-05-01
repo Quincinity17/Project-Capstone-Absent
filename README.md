@@ -25,4 +25,8 @@
 ![Halaman Absen](screenshots/darkmode/homepage.png)(screenshots/darkmode/homepage.png)
 
 ### 🌙 Dark Mode
-![Riwayat Absensi](screenshots/darkmode/homepage.png)(screenshots/darkmode/homepage_camera.png)
+<p align="center">
+  <img src="screenshots/darkmode/homepage.png" alt="Beranda (Dark Mode)" width="45%" />
+  <img src="screenshots/darkmode/homepage_camera.png" alt="Kamera (Dark Mode)" width="45%" />
+</p>
+
