@@ -11,7 +11,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -31,9 +30,9 @@ fun ConfirmationBottomSheet(
     firstText: String,
     secondText: String
 ) {
-
     val appColors = LocalAppColors.current
 
+    // BottomSheet kustom untuk menampilkan konfirmasi kepada pengguna
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
@@ -44,15 +43,17 @@ fun ConfirmationBottomSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(24.dp)
-                ,
+                .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // Gambar ilustrasi
             Image(
                 painter = painterResource(iconResId),
                 contentDescription = null,
                 modifier = Modifier.size(180.dp)
             )
+
+            // Judul dan deskripsi
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -79,12 +80,13 @@ fun ConfirmationBottomSheet(
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // Dua tombol aksi
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // First button
+                // Tombol pertama (biasanya aksi utama)
                 Button(
                     onClick = onFirstButton,
                     modifier = Modifier
@@ -96,7 +98,7 @@ fun ConfirmationBottomSheet(
                     Text(firstText, color = Color.White)
                 }
 
-                // Second button
+                // Tombol kedua
                 Button(
                     onClick = onSecondButton,
                     modifier = Modifier

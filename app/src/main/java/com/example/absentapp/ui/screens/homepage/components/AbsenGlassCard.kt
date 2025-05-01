@@ -6,22 +6,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,6 +28,13 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
+/**
+ * Komponen kartu utama untuk menampilkan jam saat ini dan tombol absen.
+ *
+ * @param currentTime Waktu saat ini, digunakan untuk menampilkan jam dan tanggal.
+ * @param onClickAbsen Fungsi callback saat tombol presensi ditekan.
+ * @param enabled Apakah tombol absen dapat ditekan atau tidak.
+ */
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AbsenGlassCard(
@@ -48,18 +42,16 @@ fun AbsenGlassCard(
     currentTime: LocalDateTime,
     onClickAbsen: () -> Unit,
     enabled: Boolean
-
 ) {
     val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
     val dateFormatter = DateTimeFormatter.ofPattern("EEEE, dd MMMM yyyy", Locale("id"))
-    val appColors = LocalAppColors.current
-    val isDarkMode = isSystemInDarkTheme()
-    val imageRes = if (isDarkMode) R.drawable.bg_glass_dark else R.drawable.bg_glass
 
     val currentTimes = currentTime.format(timeFormatter)
     val currentDates = currentTime.format(dateFormatter)
 
-
+    val appColors = LocalAppColors.current
+    val isDarkMode = isSystemInDarkTheme()
+    val imageRes = if (isDarkMode) R.drawable.bg_glass_dark else R.drawable.bg_glass
 
     Box(
         modifier = modifier
@@ -70,8 +62,8 @@ fun AbsenGlassCard(
                 color = appColors.primaryBackground.copy(alpha = 0.8f),
                 shape = RoundedCornerShape(24.dp)
             )
-
     ) {
+        // Latar belakang bergaya glass dengan mode gelap/terang
         Image(
             painter = painterResource(id = imageRes),
             contentDescription = null,
@@ -83,14 +75,11 @@ fun AbsenGlassCard(
             modifier = Modifier
                 .padding(24.dp)
                 .wrapContentHeight(),
-
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // Bagian waktu dan ikon jam
             Row(
-                modifier = Modifier
-                    .wrapContentHeight(),
                 verticalAlignment = Alignment.CenterVertically
-
             ) {
                 Image(
                     painter = painterResource(R.drawable.ilt_clock),
@@ -99,14 +88,14 @@ fun AbsenGlassCard(
                         .size(80.dp)
                         .clearAndSetSemantics {}
                 )
-                Column (
+
+                Column(
                     modifier = Modifier
                         .padding(start = 12.dp)
                         .semantics(mergeDescendants = true) {
                             contentDescription = "Saat ini jam $currentTimes, $currentDates"
                         }
-
-                ){
+                ) {
                     Text(
                         text = currentTimes,
                         fontSize = 32.sp,
@@ -124,6 +113,7 @@ fun AbsenGlassCard(
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // Tombol untuk melakukan presensi
             Button(
                 enabled = enabled,
                 onClick = onClickAbsen,
@@ -135,13 +125,10 @@ fun AbsenGlassCard(
                     .fillMaxWidth()
                     .height(64.dp)
                     .clearAndSetSemantics {
-                        contentDescription = "Presensi sekarang "
+                        contentDescription = "Presensi sekarang"
                     }
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
                         text = "Presensi Sekarang",

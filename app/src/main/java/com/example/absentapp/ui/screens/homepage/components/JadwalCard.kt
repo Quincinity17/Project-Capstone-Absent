@@ -1,15 +1,7 @@
 package com.example.absentapp.ui.screens.homepage.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -25,35 +17,39 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.absentapp.ui.theme.LocalAppColors
 
+/**
+ * Komponen kartu jadwal yang menampilkan informasi jam masuk/pulang dengan ikon dan label.
+ *
+ * @param icon ID resource ikon yang ingin ditampilkan.
+ * @param label Label jadwal, misalnya "Masuk" atau "Pulang".
+ * @param waktu Jam yang ditampilkan, misalnya "07:00".
+ */
 @Composable
 fun JadwalCard(
-    modifier: Modifier = Modifier, // Tambahin ini
+    modifier: Modifier = Modifier,
     icon: Int,
     label: String,
     waktu: String
 ) {
     val appColors = LocalAppColors.current
 
-
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .padding(vertical = 4.dp)
+            .padding(horizontal = 16.dp, vertical = 4.dp)
             .background(appColors.secondaryBackground, RoundedCornerShape(20.dp))
             .padding(16.dp)
             .clearAndSetSemantics {
+                // Untuk pembaca layar (TalkBack)
                 contentDescription = "Jadwal $label Anda hari ini pukul $waktu"
             }
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
+            // Ikon di kiri dalam kotak warna biru
             Box(
                 modifier = Modifier
                     .size(48.dp)
-                    .background(Color(0xFF50C2C9)
-
-
-                        , shape = RoundedCornerShape(12.dp)),
+                    .background(Color(0xFF50C2C9), shape = RoundedCornerShape(12.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -67,6 +63,7 @@ fun JadwalCard(
             Spacer(modifier = Modifier.width(16.dp))
 
             Column {
+                // Baris teks label
                 Row {
                     Text("Jadwal ", color = appColors.primaryText)
                     Text(label, fontWeight = FontWeight.Bold, color = appColors.primaryText)
@@ -75,6 +72,7 @@ fun JadwalCard(
 
                 Spacer(modifier = Modifier.height(4.dp))
 
+                // Teks jam/waktu yang ditampilkan
                 Text(
                     text = waktu,
                     fontWeight = FontWeight.Bold,

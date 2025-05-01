@@ -1,9 +1,6 @@
 package com.example.absentapp.ui.screens.absent
 
-import android.graphics.Bitmap
-import android.net.Uri
 import android.util.Log
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.absentapp.data.model.Absence
@@ -11,30 +8,37 @@ import com.example.absentapp.data.model.Comment
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.io.ByteArrayOutputStream
 import java.util.UUID
 
-class AbsenceViewModel: ViewModel() {
+/**
+ * ViewModel untuk menangani data perizinan (Absence) dan komentar (Comment)
+ * Mengelola fetch, posting, penghapusan data, dan penyimpanan lokal sementara dengan StateFlow.
+ */
+class AbsenceViewModel : ViewModel() {
+
     private val firestore = FirebaseFirestore.getInstance()
     private val storage = FirebaseStorage.getInstance().reference
 
+    // Semua data absensi
     private val _allAbsences = MutableStateFlow<List<Absence>>(emptyList())
     val allAbsences: StateFlow<List<Absence>> get() = _allAbsences
 
+    // Pemetaan komentar berdasarkan ID absensi
     private val _commentsMap = MutableStateFlow<Map<String, List<Comment>>>(emptyMap())
     val commentsMap: StateFlow<Map<String, List<Comment>>> get() = _commentsMap
 
-
+    /**
+     * Mengambil objek Absence berdasarkan ID.
+     */
     fun getAbsenceById(id: String): Absence {
         return _allAbsences.value.first { it.id == id }
-
     }
 
+    /**
+     * Menghapus semua data absensi dan komentar dari Firestore.
+     */
     fun deleteAllAbsences(onSuccess: () -> Unit = {}, onFailure: (String) -> Unit = {}) {
         firestore.collection("Absence")
             .get()
@@ -45,26 +49,21 @@ class AbsenceViewModel: ViewModel() {
                 }
                 batch.commit()
                     .addOnSuccessListener {
-                        Log.d("AbsenceViewModel", "Semua data perizinan berhasil dihapus.")
                         _allAbsences.value = emptyList()
                         _commentsMap.value = emptyMap()
                         onSuccess()
                     }
                     .addOnFailureListener { e ->
-                        Log.e("AbsenceViewModel", "Gagal hapus perizinan: ${e.message}")
                         onFailure(e.message ?: "Gagal menghapus semua data perizinan.")
                     }
             }
             .addOnFailureListener { e ->
-                Log.e("AbsenceViewModel", "Gagal ambil data sebelum hapus: ${e.message}")
                 onFailure(e.message ?: "Gagal mengambil data.")
             }
     }
 
-
-
     /**
-     * Upload foto ke Firebase Storage dan simpan data absensi ke Firestore
+     * Menambahkan data perizinan ke Firestore.
      */
     fun postAbsence(
         userEmail: String,
@@ -78,27 +77,23 @@ class AbsenceViewModel: ViewModel() {
             id = id,
             userEmail = userEmail,
             timestamp = System.currentTimeMillis(),
-            photoUrl = "", // kosongkan
-            reason = reason // tambahkan ini ke data class jika belum
+            photoUrl = "",
+            reason = reason
         )
 
         firestore.collection("Absence")
             .document(id)
             .set(absence)
             .addOnSuccessListener {
-                Log.d("PERIZINAN", "Data perizinan berhasil disimpan")
                 onSuccess()
             }
             .addOnFailureListener { e ->
-                Log.e("PERIZINAN", "Gagal simpan izin: ${e.message}")
                 onFailure(e.message ?: "Gagal menyimpan data")
             }
     }
 
-
-
     /**
-     * Tambahkan komentar ke sebuah post absensi
+     * Menambahkan komentar pada absensi tertentu.
      */
     fun addCommentToAbsence(
         absenceId: String,
@@ -121,9 +116,14 @@ class AbsenceViewModel: ViewModel() {
 
         commentsRef.add(comment)
             .addOnSuccessListener { onSuccess() }
-            .addOnFailureListener { e -> onFailure(e.message ?: "Gagal menambahkan komentar") }
+            .addOnFailureListener { e ->
+                onFailure(e.message ?: "Gagal menambahkan komentar")
+            }
     }
 
+    /**
+     * Mengambil komentar dari sebuah absensi dan menyimpannya di local map.
+     */
     fun loadCommentsForAbsence(absenceId: String) {
         firestore.collection("Absence")
             .document(absenceId)
@@ -140,8 +140,9 @@ class AbsenceViewModel: ViewModel() {
             }
     }
 
-
-
+    /**
+     * Mengambil semua data absensi dari Firestore.
+     */
     fun getAllAbsences() {
         viewModelScope.launch {
             firestore.collection("Absence")

@@ -15,22 +15,26 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
 
 /**
- * Implementasi dari LocationClient.
- * Menggunakan FusedLocationProvider untuk mengirim data lokasi secara periodik dalam bentuk Flow.
+ * Mengimplementasikan LocationClient.
+ * Menggunakan FusedLocationProviderClient untuk mengirim update lokasi secara periodik dalam bentuk Flow.
  */
 class DefaultLocationClient(
     private val context: Context,
     private val client: FusedLocationProviderClient
 ) : LocationClient {
 
+    /**
+     * Mengembalikan Flow<Location> yang mengirim lokasi secara berkala.
+     * @param interval waktu antar update dalam milidetik.
+     */
     @SuppressLint("MissingPermission")
     override fun getLocationUpdates(interval: Long): Flow<Location> = callbackFlow {
-        // Cek apakah permission lokasi sudah diberikan
+        // Periksa apakah permission lokasi sudah diberikan
         if (!context.hasLocationPermission()) {
             throw LocationClient.LocationException("Missing location permission")
         }
 
-        // Cek apakah GPS atau Network Provider aktif
+        // Periksa apakah GPS atau Network Provider aktif
         val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
         if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) &&
             !locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
@@ -38,12 +42,12 @@ class DefaultLocationClient(
             throw LocationClient.LocationException("GPS or Network Provider is disabled")
         }
 
-        // Setup interval untuk update lokasi
+        // Konfigurasi permintaan lokasi
         val request = LocationRequest.create()
             .setInterval(interval)
             .setFastestInterval(interval)
 
-        // Callback saat lokasi diperbarui
+        // Callback ketika lokasi diperbarui
         val locationCallback = object : LocationCallback() {
             override fun onLocationResult(result: LocationResult) {
                 result.locations.lastOrNull()?.let { location ->
@@ -52,10 +56,10 @@ class DefaultLocationClient(
             }
         }
 
-        // Mulai request lokasi
+        // Mulai mendengarkan update lokasi
         client.requestLocationUpdates(request, locationCallback, Looper.getMainLooper())
 
-        // Bersihkan callback saat flow selesai
+        // Hentikan saat flow selesai
         awaitClose {
             client.removeLocationUpdates(locationCallback)
         }

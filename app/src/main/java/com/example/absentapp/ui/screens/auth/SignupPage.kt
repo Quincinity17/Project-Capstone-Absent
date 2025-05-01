@@ -2,27 +2,12 @@ package com.example.absentapp.ui.screens.auth
 
 import android.widget.Toast
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -47,7 +32,6 @@ fun SignupPage(
     navController: NavController,
     authViewModel: AuthViewModel
 ) {
-//    var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
@@ -55,7 +39,7 @@ fun SignupPage(
     val context = LocalContext.current
     val appColors = LocalAppColors.current
 
-
+    // Jika berhasil login, navigasi ke halaman utama
     LaunchedEffect(authState) {
         when (authState) {
             is AuthState.Authenticated -> navController.navigate("main")
@@ -68,6 +52,7 @@ fun SignupPage(
         }
     }
 
+    // Background dan layout utama
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -89,20 +74,13 @@ fun SignupPage(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // Judul dan subjudul
             Text(text = "Buat Akun Baru", color = appColors.primaryText, fontSize = 28.sp)
             Spacer(modifier = Modifier.height(4.dp))
             Text(text = "Silakan isi data untuk mendaftar", color = appColors.secondaryText, fontSize = 14.sp)
             Spacer(modifier = Modifier.height(24.dp))
 
-//            CustomTextField(
-//                value = name,
-//                onValueChange = { name = it },
-//                placeholder = "Name",
-//                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next)
-//            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
+            // Input email
             CustomTextField(
                 value = email,
                 onValueChange = { email = it },
@@ -112,6 +90,7 @@ fun SignupPage(
 
             Spacer(modifier = Modifier.height(12.dp))
 
+            // Input password
             CustomTextField(
                 value = password,
                 onValueChange = { password = it },
@@ -119,22 +98,20 @@ fun SignupPage(
                 isPassword = true,
                 keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done)
             )
+
             Text(
                 text = "Gunakan minimal 6 karakter untuk kata sandi",
                 color = appColors.secondaryText,
                 fontSize = 12.sp,
-
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(start = 12.dp)
                     .clearAndSetSemantics {}
             )
 
+            Spacer(modifier = Modifier.height(28.dp))
 
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Spacer(modifier = Modifier.height(16.dp))
-
+            // Tombol daftar
             Button(
                 onClick = { authViewModel.signup(email, password) },
                 modifier = Modifier
@@ -148,7 +125,10 @@ fun SignupPage(
                             )
                         } else {
                             Brush.horizontalGradient(
-                                colors = listOf(appColors.gradientDisabledButtonStart, appColors.gradientDisabledButtonEnd)
+                                colors = listOf(
+                                    appColors.gradientDisabledButtonStart,
+                                    appColors.gradientDisabledButtonEnd
+                                )
                             )
                         }
                     ),
@@ -159,14 +139,14 @@ fun SignupPage(
                     disabledContentColor = Color.White.copy(alpha = 0.5f)
                 ),
                 contentPadding = ButtonDefaults.ContentPadding,
-                enabled =  email.isNotBlank() && password.isNotBlank()
+                enabled = email.isNotBlank() && password.isNotBlank()
             ) {
                 Text("Sign up", color = Color.White)
             }
 
-
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Navigasi ke halaman login
             TextButton(onClick = {
                 navController.navigate("login")
             }) {

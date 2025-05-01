@@ -14,11 +14,12 @@ import androidx.compose.ui.window.Dialog
 import com.example.absentapp.ui.components.Popup
 
 /**
- * Dialog untuk menampilkan preview foto setelah gambar diambil.
+ * Dialog kustom untuk menampilkan pratinjau gambar setelah pengambilan foto.
+ * Menggunakan komponen `Popup` untuk tampilan visual yang konsisten.
  *
- * @param bitmap Gambar yang baru saja diambil.
- * @param onConfirm Callback saat user menekan "Confirm".
- * @param onRetake Callback saat user menekan "Retake".
+ * @param bitmap Foto yang baru diambil.
+ * @param onConfirm Fungsi callback saat pengguna menekan tombol "Konfirmasi".
+ * @param onRetake Fungsi callback saat pengguna ingin mengambil ulang foto.
  */
 @Composable
 fun CameraPreviewDialog(
@@ -51,14 +52,13 @@ fun CameraPreviewDialog(
             )
         }
     }
-
 }
 
 /**
- * Dialog untuk menampilkan pesan error saat pengambilan foto gagal.
+ * Dialog standar untuk menampilkan error saat pengambilan foto gagal.
  *
- * @param message Pesan error yang akan ditampilkan.
- * @param onRetry Callback saat user menekan "Coba Lagi".
+ * @param message Pesan kesalahan yang akan ditampilkan.
+ * @param onRetry Fungsi callback saat pengguna menekan tombol "Coba Lagi".
  */
 @Composable
 fun CameraErrorDialog(
@@ -68,7 +68,9 @@ fun CameraErrorDialog(
     AlertDialog(
         onDismissRequest = onRetry,
         confirmButton = {
-            TextButton(onClick = onRetry) { Text("Coba Lagi") }
+            TextButton(onClick = onRetry) {
+                Text("Coba Lagi")
+            }
         },
         text = {
             Text(message)

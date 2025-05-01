@@ -15,7 +15,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -30,7 +29,6 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.absentapp.R
 import com.example.absentapp.ui.theme.LocalAppColors
-import kotlinx.coroutines.launch
 
 data class BottomNavigationItem(
     val route: String,
@@ -39,10 +37,9 @@ data class BottomNavigationItem(
     val unselectedIcon: Painter
 )
 
-
 /**
  * Bottom Navigation Bar yang muncul di halaman utama.
- * Menyediakan akses cepat ke halaman "Absen" dan "Profile".
+ * Menyediakan akses cepat ke halaman "Homepage", "Riwayat", "Perizinan", dan "Pengaturan".
  */
 @Composable
 fun BottomNavigationBar(
@@ -52,30 +49,47 @@ fun BottomNavigationBar(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
+    // Daftar item navigasi bawah
     val items = listOf(
-        BottomNavigationItem("homePage", "Homepage", painterResource(R.drawable.ic_home_filled), painterResource(R.drawable.ic_home_unfilled)),
-        BottomNavigationItem("riwayatPage", "Riwayat", painterResource(R.drawable.ic_history_filled), painterResource(R.drawable.ic_history_unfilled)),
-        BottomNavigationItem("absentPage", "Perizinan", painterResource(R.drawable.ic_docum_filled), painterResource(R.drawable.ic_docum_unfilled)),
-
-        BottomNavigationItem("settingPage", "Pengaturan", painterResource(R.drawable.ic_setting_filled), painterResource(R.drawable.ic_setting_unfilled)),
+        BottomNavigationItem(
+            "homePage", "Homepage",
+            painterResource(R.drawable.ic_home_filled),
+            painterResource(R.drawable.ic_home_unfilled)
+        ),
+        BottomNavigationItem(
+            "riwayatPage", "Riwayat",
+            painterResource(R.drawable.ic_history_filled),
+            painterResource(R.drawable.ic_history_unfilled)
+        ),
+        BottomNavigationItem(
+            "absentPage", "Perizinan",
+            painterResource(R.drawable.ic_docum_filled),
+            painterResource(R.drawable.ic_docum_unfilled)
+        ),
+        BottomNavigationItem(
+            "settingPage", "Pengaturan",
+            painterResource(R.drawable.ic_setting_filled),
+            painterResource(R.drawable.ic_setting_unfilled)
+        ),
     )
+
     val appColors = LocalAppColors.current
 
-
-    Box(modifier = Modifier
-        .offset(y = -2.dp)
-        .background(appColors.primaryBackground)
-        .semantics {
-            // Bottom nav is read first by TalkBack
-            isTraversalGroup = true
-            traversalIndex = 0f
-        }
-    )
-
-    {
+    Box(
+        modifier = Modifier
+            .offset(y = -2.dp)
+            .background(appColors.primaryBackground)
+            .semantics {
+                isTraversalGroup = true
+                traversalIndex = 0f
+            }
+    ) {
         HorizontalDivider(thickness = 1.dp, color = appColors.primaryBackground)
 
-        NavigationBar(tonalElevation = 0.dp, containerColor = appColors.primaryBackground) {
+        NavigationBar(
+            tonalElevation = 0.dp,
+            containerColor = appColors.primaryBackground
+        ) {
             items.forEach { item ->
                 NavigationBarItem(
                     selected = currentRoute?.startsWith(item.route) == true,
@@ -86,7 +100,6 @@ fun BottomNavigationBar(
                                 else -> item.route
                             }
 
-
                             navController.navigate(routeWithParam) {
                                 popUpTo(navController.graph.startDestinationId) {
                                     saveState = true
@@ -95,17 +108,19 @@ fun BottomNavigationBar(
                                 restoreState = true
                             }
                         }
-                    }
-
-                    ,
+                    },
                     icon = {
                         Icon(
-                            painter = if (currentRoute?.startsWith(item.route) == true) item.selectedIcon else item.unselectedIcon,
+                            painter = if (currentRoute?.startsWith(item.route) == true)
+                                item.selectedIcon
+                            else
+                                item.unselectedIcon,
                             contentDescription = item.title,
                             modifier = Modifier
                                 .size(24.dp)
                                 .then(
-                                    if (item.route == "homePage") Modifier.focusRequester(focusRequester)
+                                    if (item.route == "homePage")
+                                        Modifier.focusRequester(focusRequester)
                                     else Modifier
                                 )
                         )

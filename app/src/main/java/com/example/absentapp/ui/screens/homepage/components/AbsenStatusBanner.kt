@@ -22,9 +22,12 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.absentapp.R
-import com.example.absentapp.ui.theme.LocalAppColors
 import java.time.LocalTime
 
+/**
+ * Komponen banner yang memberikan status absensi terkini kepada pengguna.
+ * Menyesuaikan pesan berdasarkan waktu sekarang, lokasi pengguna, dan status absen.
+ */
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AbsenStatusBanner(
@@ -41,24 +44,14 @@ fun AbsenStatusBanner(
 ) {
     val now = LocalTime.now()
 
-    // Parsing jadwalMasuk dan jadwalPulang dari String ke LocalTime?
-    Log.d("AYAMGORENG", "jadwal masuk $jadwalMasuk")
-    Log.d("AYAMGORENG", "jadwal pulang $jadwalPulang")
-    Log.d("AYAMGORENG", "jadwal masuk bsk $jamMasukBesok")
-
+    // Parsing string jam masuk/pulang ke LocalTime
     val parsedMasuk = runCatching { LocalTime.parse(jadwalMasuk) }.getOrNull()
     val parsedPulang = runCatching { LocalTime.parse(jadwalPulang) }.getOrNull()
 
-    Log.d("AYAMGORENG", "Masuk: $parsedMasuk | Pulang: $parsedPulang | Besok: $jamMasukBesok")
-    Log.d("AYAMGORENG", "Sebelum Masuk : ${    parsedMasuk != null && now.isBefore(parsedMasuk)}")
-    Log.d("AYAMGORENG", "Sebelum Masuk tapi belum pulang: ${    parsedMasuk != null && parsedPulang != null &&
-            now.isAfter(parsedMasuk) && now.isBefore(parsedPulang)}")
-    Log.d("AYAMGORENG", "Sudah pulang: ${    parsedPulang != null && now.isAfter(parsedPulang)}")
-
-
-
-
+    // Default warna teks
     var color = Color.Gray
+
+    // Build teks status secara dinamis berdasarkan kondisi
     val message = buildAnnotatedString {
         when {
             isUpdateData -> {
@@ -71,6 +64,7 @@ fun AbsenStatusBanner(
                 append("Sedang mengambil data lokasi...")
             }
 
+            // Sebelum jam masuk
             parsedMasuk != null && now.isBefore(parsedMasuk) -> {
                 if (!isAbsenHariIni) {
                     withStyle(SpanStyle(fontWeight = FontWeight.Bold, fontSize = 14.sp)) {
@@ -93,10 +87,9 @@ fun AbsenStatusBanner(
                 }
             }
 
+            // Sudah lewat jam masuk, tapi belum pulang
             parsedMasuk != null && parsedPulang != null &&
                     now.isAfter(parsedMasuk) && now.isBefore(parsedPulang) -> {
-
-
                 if (!isAbsenHariIni) {
                     withStyle(SpanStyle(fontWeight = FontWeight.Bold, fontSize = 14.sp)) {
                         appendLine("Anda belum absen masuk hari ini.")
@@ -119,9 +112,8 @@ fun AbsenStatusBanner(
                 }
             }
 
+            // Sudah lewat jam pulang
             parsedPulang != null && now.isAfter(parsedPulang) -> {
-//                Log.d("AYAMGORENG", "Now : $now, Pulang : $parsedPulang")
-
                 if (!sudahAbsenPulang) {
                     withStyle(SpanStyle(fontWeight = FontWeight.Bold, fontSize = 14.sp)) {
                         appendLine("Anda belum absen pulang hari ini.")
@@ -144,6 +136,7 @@ fun AbsenStatusBanner(
                 }
             }
 
+            // Default fallback jika waktu tidak bisa diproses
             else -> {
                 color = Color.Gray
                 append("Status absensi tidak diketahui.")
@@ -151,6 +144,7 @@ fun AbsenStatusBanner(
         }
     }
 
+    // Ambil plain text untuk screen reader
     val plainMessage = message.text
 
     Box(

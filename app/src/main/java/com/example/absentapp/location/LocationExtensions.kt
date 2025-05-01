@@ -7,6 +7,7 @@ import androidx.core.content.ContextCompat
 
 /**
  * Extension function pada Context untuk mengecek apakah permission lokasi sudah diberikan.
+ * Mengecek baik ACCESS_FINE_LOCATION maupun ACCESS_COARSE_LOCATION.
  */
 fun Context.hasLocationPermission(): Boolean {
     return ContextCompat.checkSelfPermission(

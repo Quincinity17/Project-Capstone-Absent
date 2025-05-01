@@ -2,7 +2,6 @@ package com.example.absentapp.ui.screens.riwayat
 
 import android.graphics.BitmapFactory
 import android.util.Base64
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
@@ -19,7 +18,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -60,12 +58,19 @@ import java.util.Calendar
 import java.util.Locale
 
 /**
- * Halaman Riwayat yang menampilkan daftar absen berdasarkan email user.
- * Menampilkan popup foto saat item diklik.
+ * RiwayatPage.kt
+ * Halaman Riwayat untuk menampilkan daftar presensi (check-in dan check-out) user.
  *
- * @param fromBottomBar Menentukan apakah halaman dibuka dari bottom bar (untuk focus TalkBack)
- * @param authViewModel ViewModel autentikasi untuk akses data user dan absen
+ * Fitur:
+ * - Menampilkan daftar riwayat absen berdasarkan email user yang sedang login
+ * - Menampilkan status waktu absen (tepat waktu, telat, lebih cepat)
+ * - Menampilkan popup foto bukti absen jika tersedia
+ * - Aksesibilitas untuk TalkBack pengguna disabilitas visual
+ *
+ * @param fromBottomBar Menandakan apakah halaman ini dipanggil dari bottom navigation
+ * @param authViewModel ViewModel untuk autentikasi dan data user
  */
+
 @Composable
 fun RiwayatPage(
     fromBottomBar: Boolean,
@@ -77,7 +82,7 @@ fun RiwayatPage(
     val focusRequester = remember { FocusRequester() }
     val appColors = LocalAppColors.current
 
-    // Fokus ke heading saat diakses dari BottomNavigation
+    // Fokus TalkBack diarahkan ke heading jika dipanggil dari BottomNavigation
     LaunchedEffect(fromBottomBar) {
         if (fromBottomBar) {
             snapshotFlow { true }.first()
@@ -86,6 +91,7 @@ fun RiwayatPage(
         }
     }
 
+    // Jika belum login, tampilkan pesan
     if (currentEmail == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text("User belum login")
@@ -93,21 +99,12 @@ fun RiwayatPage(
         return
     }
 
-    Log.d("DAUNKELOR", "absen time ${absenTime.size}")
-    Log.d("DAUNKELOR", "email saat ini${currentEmail}")
-
-    absenTime.forEach {
-        Log.d("DAUNKELOR", "absen: name=${it.name}, timestamp=${it.timestamp}, type=${it.type}")
-    }
-
-
-    // Filter absen berdasarkan email user
+    // Filter daftar absen milik user yang sedang login
     val userAbsens = absenTime
         .filter { it.name == currentEmail }
         .sortedByDescending { it.timestamp?.toDate() }
 
-//    Log.d("DAUNKELOR", "userabsens${userAbsens}")
-
+    // Layout utama
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -139,7 +136,7 @@ fun RiwayatPage(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Tampilan jika belum ada data
+        // Jika belum ada data absen
         if (userAbsens.isEmpty()) {
             Box(
                 modifier = Modifier
@@ -156,18 +153,14 @@ fun RiwayatPage(
                         contentDescription = "Ilustrasi tidak ada data",
                         modifier = Modifier.size(200.dp)
                     )
-
                     Spacer(modifier = Modifier.height(24.dp))
-
                     Text(
                         text = "Belum ada data absen",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         color = appColors.primaryText
                     )
-
                     Spacer(modifier = Modifier.height(8.dp))
-
                     Text(
                         text = "Silakan lakukan presensi terlebih dahulu",
                         fontSize = 14.sp,
@@ -176,8 +169,11 @@ fun RiwayatPage(
                 }
             }
         } else {
+            // Menampilkan setiap entri absen
             userAbsens.forEach { absen ->
                 val timeStamp = absen.timestamp?.toDate()
+
+                // Format jam dan tanggal
                 val hourMinute = timeStamp?.let {
                     android.text.format.DateFormat.format("HH:mm", it).toString()
                 } ?: "--:--"
@@ -211,7 +207,7 @@ fun RiwayatPage(
         }
     }
 
-    // Popup menampilkan foto jika diklik
+    // Menampilkan popup jika user klik tombol "Lihat Foto Bukti"
     if (selectedPhoto != null) {
         Dialog(onDismissRequest = { selectedPhoto = null }) {
             Surface(
@@ -242,9 +238,7 @@ fun RiwayatPage(
 }
 
 /**
- * Memformat `timeNote` berdasarkan jenis absen.
- * - Untuk "masuk": tampilkan "Telat x menit" atau "Lebih cepat x menit"
- * - Untuk "keluar": tampilkan apa adanya
+ * Format teks timeNote sesuai jenis absen (masuk/pulang).
  */
 fun formatTimeNoteByType(timeNote: String?, type: String?): String {
     if (timeNote.isNullOrBlank()) return ""
@@ -256,8 +250,8 @@ fun formatTimeNoteByType(timeNote: String?, type: String?): String {
 }
 
 /**
- * Mengubah notasi waktu seperti "+15" atau "-10" menjadi kalimat natural:
- * "+15" → "Lebih cepat 15 menit", "-70" → "Telat 1 jam 10 menit"
+ * Mengubah string waktu seperti "+15" menjadi "Lebih cepat 15 menit"
+ * atau "-70" menjadi "Telat 1 jam 10 menit"
  */
 fun formatTimeNote(timeNote: String?): String {
     if (timeNote.isNullOrBlank()) return ""

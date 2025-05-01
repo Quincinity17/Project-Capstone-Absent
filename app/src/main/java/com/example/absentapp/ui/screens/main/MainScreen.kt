@@ -5,17 +5,13 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.semantics.isTraversalGroup
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -29,8 +25,18 @@ import com.example.absentapp.ui.screens.homepage.HomePage
 import com.example.absentapp.ui.screens.riwayat.RiwayatPage
 import com.example.absentapp.ui.screens.setting.SettingPage
 import com.example.absentapp.ui.theme.LocalAppColors
+import androidx.navigation.NavHostController
 import kotlinx.coroutines.delay
 
+/**
+ * Halaman utama (MainScreen) yang membungkus semua fitur navigasi bawah (Bottom Navigation)
+ * dan mengarahkan ke halaman-halaman utama: Home, Riwayat, Perizinan, dan Setting.
+ *
+ * @param authViewModel ViewModel untuk autentikasi pengguna
+ * @param absenceViewModel ViewModel untuk data absensi
+ * @param locationViewModel ViewModel untuk pelacakan lokasi
+ * @param rootNavController NavController dari root host (biasanya dikirim dari NavigationHost utama)
+ */
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun MainScreen(
@@ -43,18 +49,24 @@ fun MainScreen(
     val appColors = LocalAppColors.current
     val bottomBarFocusRequester = remember { FocusRequester() }
 
+    /**
+     * Aksesibilitas: Fokus otomatis ke bottom navigation bar saat pertama kali muncul
+     */
     LaunchedEffect(Unit) {
         delay(150)
         bottomBarFocusRequester.requestFocus()
     }
 
-
+    /**
+     * Scaffold utama dengan BottomNavigationBar dan konten berdasarkan route aktif
+     */
     Scaffold(
         containerColor = appColors.primaryBackground,
         bottomBar = {
             BottomNavigationBar(
                 navController = bottomNavController,
-                focusRequester = bottomBarFocusRequester            )
+                focusRequester = bottomBarFocusRequester
+            )
         },
         contentWindowInsets = WindowInsets(0.dp)
     ) { padding ->
@@ -68,17 +80,14 @@ fun MainScreen(
                     traversalIndex = 1f
                 }
         ) {
-            //Halaman Homepage
+            /**
+             * Route: Halaman Beranda (HomePage)
+             */
             composable(
                 route = "homePage?fromBottomBar={fromBottomBar}",
-                arguments = listOf(
-                    navArgument("fromBottomBar") {
-                        defaultValue = "false"
-                    }
-                )
+                arguments = listOf(navArgument("fromBottomBar") { defaultValue = "false" })
             ) { backStackEntry ->
                 val fromBottomBar = backStackEntry.arguments?.getString("fromBottomBar") == "true"
-
                 HomePage(
                     fromBottomBar = fromBottomBar,
                     authViewModel = authViewModel,
@@ -87,59 +96,48 @@ fun MainScreen(
                 )
             }
 
-            //Halaman Riwayat
+            /**
+             * Route: Halaman Riwayat Absensi
+             */
             composable(
                 route = "riwayatPage?fromBottomBar={fromBottomBar}",
-                arguments = listOf(
-                    navArgument("fromBottomBar") {
-                        defaultValue = "false"
-                    }
-                )
+                arguments = listOf(navArgument("fromBottomBar") { defaultValue = "false" })
             ) { backStackEntry ->
                 val fromBottomBar = backStackEntry.arguments?.getString("fromBottomBar") == "true"
-
                 RiwayatPage(
                     fromBottomBar = fromBottomBar,
                     authViewModel = authViewModel
                 )
             }
-            //Halaman Absent
+
+            /**
+             * Route: Halaman Pengajuan Perizinan
+             */
             composable(
                 route = "absentPage?fromBottomBar={fromBottomBar}",
-                arguments = listOf(
-                    navArgument("fromBottomBar") {
-                        defaultValue = "false"
-                    }
-                )
+                arguments = listOf(navArgument("fromBottomBar") { defaultValue = "false" })
             ) { backStackEntry ->
                 val fromBottomBar = backStackEntry.arguments?.getString("fromBottomBar") == "true"
-
                 AbsentPage(
                     fromBottomBar = fromBottomBar,
                     absenceViewModel = absenceViewModel,
                     authViewModel = authViewModel,
                     navController = rootNavController
-
                 )
             }
 
-            //Halaman Setting
+            /**
+             * Route: Halaman Pengaturan
+             */
             composable(
                 route = "settingPage?fromBottomBar={fromBottomBar}",
-                arguments = listOf(
-                    navArgument("fromBottomBar") {
-                        defaultValue = "false"
-                    }
-                )
+                arguments = listOf(navArgument("fromBottomBar") { defaultValue = "false" })
             ) { backStackEntry ->
                 val fromBottomBar = backStackEntry.arguments?.getString("fromBottomBar") == "true"
-
                 SettingPage(
                     fromBottomBar = fromBottomBar,
                     locationViewModel = locationViewModel,
                     absenceViewModel = absenceViewModel,
-
-
                     authViewModel = authViewModel,
                     rootNavController = rootNavController
                 )

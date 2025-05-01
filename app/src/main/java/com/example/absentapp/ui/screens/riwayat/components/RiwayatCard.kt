@@ -1,24 +1,18 @@
 package com.example.absentapp.ui.screens.riwayat.components
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -27,6 +21,16 @@ import androidx.compose.ui.unit.sp
 import com.example.absentapp.R
 import com.example.absentapp.ui.theme.LocalAppColors
 
+/**
+ * Komponen kartu yang menampilkan satu entri riwayat absensi (masuk/pulang).
+ * Tersedia informasi waktu, tanggal, jenis absen, dan tombol untuk melihat foto bukti.
+ *
+ * @param timenote Keterangan waktu (misalnya "Tepat Waktu", "Terlambat", dll.)
+ * @param date Tanggal absensi dalam format string
+ * @param hourMinute Jam dan menit absensi (contoh: "08:00")
+ * @param type Jenis absensi: "masuk" atau "keluar"
+ * @param onPhotoClick Callback opsional ketika tombol "Lihat Foto Bukti" ditekan
+ */
 @Composable
 fun RiwayatCard(
     timenote: String,
@@ -35,9 +39,10 @@ fun RiwayatCard(
     type: String,
     onPhotoClick: (() -> Unit)? = null
 ) {
-    val darkTextColor = Color(0xFF2D1D1D)
     val appColors = LocalAppColors.current
+    val darkTextColor = Color(0xFF2D1D1D)
 
+    // Tentukan label dan ikon berdasarkan jenis absen
     val titleText = if (type.lowercase() == "keluar") "Checkout Time" else "Checkin Time"
     val iconRes = if (type.lowercase() == "keluar") R.drawable.ic_arrow_circle_left else R.drawable.ic_arrow_circle_right
     val iconColor = if (type.lowercase() == "keluar") appColors.iconColorCheckOut else appColors.iconColorCheckIn
@@ -47,24 +52,20 @@ fun RiwayatCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
-            .semantics(mergeDescendants = true) {}, // 👈 grup satu card
+            .semantics(mergeDescendants = true) {}, // Aksesibilitas: kelompokkan isi kartu
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = appColors.secondaryBackground),
         border = BorderStroke(1.dp, appColors.strokeButton)
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
 
-            // Bagian atas
+            // Bagian atas: header kartu dengan info waktu
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(start = 8.dp, end = 8.dp, top = 8.dp)
                     .background(appColors.primaryBackground)
-                    .border(
-                        width = 1.dp,
-                        color = appColors.strokeButton,
-                        shape = RoundedCornerShape(12.dp)
-                    )
+                    .border(1.dp, appColors.strokeButton, RoundedCornerShape(12.dp))
                     .clip(RoundedCornerShape(16.dp))
             ) {
                 Row(
@@ -72,7 +73,7 @@ fun RiwayatCard(
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 8.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Box(
@@ -122,7 +123,7 @@ fun RiwayatCard(
                 }
             }
 
-            // Tombol bawah
+            // Bagian bawah: tombol untuk melihat foto bukti (jika ada)
             if (onPhotoClick != null) {
                 TextButton(
                     onClick = onPhotoClick,
@@ -137,8 +138,8 @@ fun RiwayatCard(
                     Text(
                         text = "Lihat Foto Bukti",
                         fontSize = 14.sp,
-                        color = appColors.primaryText,
                         fontWeight = FontWeight.Medium,
+                        color = appColors.primaryText,
                         modifier = Modifier.weight(1f)
                     )
                     Icon(
@@ -151,14 +152,11 @@ fun RiwayatCard(
             }
         }
     }
-
 }
 
-
-
-
-
-
+/**
+ * Preview RiwayatCard untuk UI Designer dan pengujian visual cepat.
+ */
 @Preview(showBackground = true)
 @Composable
 fun PreviewRiwayatCard() {

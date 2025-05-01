@@ -13,9 +13,9 @@ package com.example.absentapp.utils
  */
 fun sanitizeTimeInput(rawTimeInput: String): String {
     return rawTimeInput
-        .replace("“", "")  // kutip miring kiri
-        .replace("”", "")  // kutip miring kanan
-        .replace("\"", "") // double quote biasa
-        .replace("'", "")  // single quote
-        .trim()            // hapus spasi di awal/akhir
+        .replace("“", "")
+        .replace("”", "")
+        .replace("\"", "")
+        .replace("'", "")
+        .trim()
 }

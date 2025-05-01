@@ -14,6 +14,15 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
+/**
+ * ViewfinderOverlay menampilkan area "lubang transparan" di tengah layar
+ * yang dapat digunakan sebagai panduan untuk menempatkan wajah atau objek.
+ *
+ * @param widthPercent Persentase lebar lubang terhadap layar (0.0 - 1.0)
+ * @param heightPercent Persentase tinggi lubang terhadap layar (0.0 - 1.0)
+ * @param verticalOffsetPercent Posisi lubang secara vertikal (positif ke bawah)
+ * @param cornerRadius Radius sudut untuk lubang viewfinder
+ */
 @Composable
 fun ViewfinderOverlay(
     modifier: Modifier = Modifier,
@@ -23,10 +32,12 @@ fun ViewfinderOverlay(
     cornerRadius: Dp = 24.dp
 ) {
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
+        // Konversi ukuran layout ke pixel
         val canvasWidth = with(LocalDensity.current) { maxWidth.toPx() }
         val canvasHeight = with(LocalDensity.current) { maxHeight.toPx() }
         val cornerRadiusPx = with(LocalDensity.current) { cornerRadius.toPx() }
 
+        // Hitung ukuran dan posisi lubang transparan
         val holeWidthPx = canvasWidth * widthPercent
         val holeHeightPx = canvasHeight * heightPercent
         val verticalOffsetPx = canvasHeight * verticalOffsetPercent
@@ -35,13 +46,16 @@ fun ViewfinderOverlay(
         val top = (canvasHeight - holeHeightPx) / 2f + verticalOffsetPx
 
         Canvas(modifier = Modifier.fillMaxSize()) {
+            // Gambar overlay hitam semi-transparan
             drawRect(color = Color.Black.copy(alpha = 0.5f))
+
+            // Gambar lubang transparan di tengah (menggunakan BlendMode.Clear)
             drawRoundRect(
                 color = Color.Transparent,
                 topLeft = Offset(left, top),
                 size = Size(holeWidthPx, holeHeightPx),
                 cornerRadius = CornerRadius(cornerRadiusPx, cornerRadiusPx),
-                blendMode = BlendMode.Clear
+                blendMode = BlendMode.Clear // membersihkan area agar terlihat
             )
         }
     }

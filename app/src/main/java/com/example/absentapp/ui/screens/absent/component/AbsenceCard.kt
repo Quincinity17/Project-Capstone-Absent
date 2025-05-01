@@ -20,6 +20,10 @@ import com.example.absentapp.ui.theme.LocalAppColors
 import java.text.SimpleDateFormat
 import java.util.*
 
+/**
+ * Komponen kartu absen yang menampilkan informasi pengguna, alasan, waktu, dan jumlah komentar.
+ * Digunakan dalam daftar riwayat absen.
+ */
 @Composable
 fun AbsenceCard(
     absence: Absence,
@@ -27,32 +31,35 @@ fun AbsenceCard(
     onClick: () -> Unit
 ) {
     val appColors = LocalAppColors.current
+
+    // Format waktu dari timestamp ke bentuk: "12 Apr 2024 • 14:30"
     val formattedTime = SimpleDateFormat("dd MMM yyyy • HH:mm", Locale("id", "ID"))
         .format(Date(absence.timestamp))
 
     Row(
         modifier = Modifier
             .fillMaxSize()
-            .clickable { onClick() }
+            .clickable { onClick() } // Tindakan saat kartu ditekan
             .padding(vertical = 16.dp, horizontal = 8.dp)
-
     ) {
+        // Ikon profil di kiri
         Icon(
             painter = painterResource(R.drawable.ic_profile),
             contentDescription = "",
             tint = appColors.secondaryText,
-            modifier = Modifier
-                .size(32.dp)
+            modifier = Modifier.size(32.dp)
         )
 
         Spacer(modifier = Modifier.width(8.dp))
 
-
+        // Konten kartu
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(appColors.primaryBackground, shape = RoundedCornerShape(12.dp))
+                .padding(12.dp) // agar teks tidak terlalu mepet
         ) {
+            // Nama pengguna (diambil dari email)
             Text(
                 text = absence.userEmail.substringBefore("@"),
                 fontWeight = FontWeight.SemiBold,
@@ -62,6 +69,7 @@ fun AbsenceCard(
 
             Spacer(modifier = Modifier.height(6.dp))
 
+            // Alasan absen
             Text(
                 text = absence.reason,
                 fontSize = 14.sp,
@@ -71,19 +79,21 @@ fun AbsenceCard(
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            // Waktu dan jumlah komentar
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
+                // Tanggal & waktu
                 Text(
                     text = formattedTime,
                     fontSize = 12.sp,
                     color = appColors.secondaryText
                 )
 
-
                 Spacer(modifier = Modifier.width(12.dp))
 
+                // Komentar (ikon + jumlah)
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -101,7 +111,6 @@ fun AbsenceCard(
                     )
                 }
             }
-
         }
     }
 }

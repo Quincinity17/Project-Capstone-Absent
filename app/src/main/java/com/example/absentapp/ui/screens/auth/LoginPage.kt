@@ -39,14 +39,13 @@ fun LoginPage(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
-
     val passwordFocusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
     val authState = authViewModel.authState.observeAsState()
     val context = LocalContext.current
     val appColors = LocalAppColors.current
 
-
+    // Efek samping saat status autentikasi berubah
     LaunchedEffect(authState.value) {
         when (authState.value) {
             is AuthState.Authenticated -> navController.navigate("main")
@@ -59,6 +58,7 @@ fun LoginPage(
         }
     }
 
+    // Tampilan utama login
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -80,25 +80,30 @@ fun LoginPage(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = "Masuk",color = appColors.primaryText, fontSize = 28.sp)
+            // Judul dan deskripsi
+            Text(text = "Masuk", color = appColors.primaryText, fontSize = 28.sp)
             Spacer(modifier = Modifier.height(4.dp))
-            Text(text = "Silakan masukkan email dan kata sandi", color = appColors.secondaryText, fontSize = 14.sp)
+            Text(
+                text = "Silakan masukkan email dan kata sandi",
+                color = appColors.secondaryText,
+                fontSize = 14.sp
+            )
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Email Field
+            // Field email
             CustomTextField(
                 value = email,
                 onValueChange = { email = it },
                 placeholder = "Email",
                 keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
-                keyboardActions = KeyboardActions(onNext = {
-                    passwordFocusRequester.requestFocus()
-                })
+                keyboardActions = KeyboardActions(
+                    onNext = { passwordFocusRequester.requestFocus() }
+                )
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Password Field
+            // Field password
             CustomTextField(
                 value = password,
                 onValueChange = { password = it },
@@ -106,14 +111,14 @@ fun LoginPage(
                 placeholder = "Password",
                 modifier = Modifier.focusRequester(passwordFocusRequester),
                 keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
-                keyboardActions = KeyboardActions(onDone = {
-                    focusManager.clearFocus()
-                })
+                keyboardActions = KeyboardActions(
+                    onDone = { focusManager.clearFocus() }
+                )
             )
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Login Button
+            // Tombol Login
             Button(
                 onClick = { authViewModel.login(email, password) },
                 modifier = Modifier
@@ -127,7 +132,10 @@ fun LoginPage(
                             )
                         } else {
                             Brush.horizontalGradient(
-                                colors = listOf(appColors.gradientDisabledButtonStart, appColors.gradientDisabledButtonEnd)
+                                colors = listOf(
+                                    appColors.gradientDisabledButtonStart,
+                                    appColors.gradientDisabledButtonEnd
+                                )
                             )
                         }
                     ),
@@ -137,28 +145,26 @@ fun LoginPage(
                     contentColor = Color.White,
                     disabledContentColor = Color.White.copy(alpha = 0.5f)
                 ),
-
                 contentPadding = ButtonDefaults.ContentPadding,
                 enabled = authState.value != AuthState.Loading && email.isNotBlank() && password.isNotBlank()
             ) {
                 Text("Login", color = Color.White)
             }
 
-
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Sign Up Text
-            TextButton(onClick = {
-                navController.navigate("signup")
-            }) {
-                Text(buildAnnotatedString {
-                    withStyle(style = SpanStyle(color = appColors.secondaryText)) {
-                        append("Apakah belum punya akun? ")
+            // Tombol untuk ke halaman signup
+            TextButton(onClick = { navController.navigate("signup") }) {
+                Text(
+                    buildAnnotatedString {
+                        withStyle(style = SpanStyle(color = appColors.secondaryText)) {
+                            append("Apakah belum punya akun? ")
+                        }
+                        withStyle(style = SpanStyle(color = appColors.primaryButtonColors)) {
+                            append("Sign up")
+                        }
                     }
-                    withStyle(style = SpanStyle(color = appColors.primaryButtonColors)) {
-                        append("Sign up")
-                    }
-                })
+                )
             }
         }
     }

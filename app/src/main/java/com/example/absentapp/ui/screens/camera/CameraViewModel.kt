@@ -6,32 +6,37 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
+/**
+ * ViewModel untuk halaman kamera.
+ * Menyimpan state bitmap hasil foto dan error yang terjadi.
+ */
 class CameraViewModel : ViewModel() {
 
-    // Daftar bitmap hasil foto
+    // List bitmap hasil pengambilan foto (bisa digunakan untuk histori, dsb.)
     private val _bitmaps = MutableStateFlow<List<Bitmap>>(emptyList())
     val bitmaps: StateFlow<List<Bitmap>> = _bitmaps.asStateFlow()
 
-    // Error message untuk ditampilkan di dialog
+    // Error message yang muncul saat kamera gagal digunakan
     private val _cameraError = MutableStateFlow<String?>(null)
     val cameraError: StateFlow<String?> = _cameraError.asStateFlow()
 
     /**
      * Dipanggil saat berhasil ambil foto
+     * Foto akan ditambahkan ke list bitmap
      */
     fun onTakePhoto(bitmap: Bitmap) {
         _bitmaps.value += bitmap
     }
 
     /**
-     * Set error saat terjadi kegagalan pengambilan gambar
+     * Dipanggil saat terjadi kesalahan saat mengambil foto
      */
     fun setCameraError(message: String) {
         _cameraError.value = message
     }
 
     /**
-     * Reset error setelah ditampilkan ke UI
+     * Membersihkan pesan error setelah ditampilkan ke pengguna
      */
     fun clearError() {
         _cameraError.value = null

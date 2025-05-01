@@ -27,15 +27,15 @@ import kotlinx.coroutines.flow.onEach
  */
 class LocationService : Service() {
 
-    // CoroutineScope khusus untuk pekerjaan background (IO-bound)
+    // CoroutineScope khusus untuk pekerjaan background
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-    // Client untuk akses lokasi dari FusedLocationProviderClient
+    // Wrapper untuk FusedLocationProviderClient
     private lateinit var locationClient: LocationClient
 
     override fun onCreate() {
         super.onCreate()
-        // Inisialisasi DefaultLocationClient (wrapper lokasi)
+        // Inisialisasi LocationClient menggunakan DefaultLocationClient
         locationClient = DefaultLocationClient(
             applicationContext,
             LocationServices.getFusedLocationProviderClient(applicationContext)
@@ -43,8 +43,8 @@ class LocationService : Service() {
     }
 
     /**
-     * Dipanggil saat Service menerima perintah via Intent.
-     * Bisa ACTION_START (mulai tracking) atau ACTION_STOP (hentikan service).
+     * Menangani intent masuk.
+     * Digunakan untuk memulai atau menghentikan tracking lokasi.
      */
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -55,51 +55,48 @@ class LocationService : Service() {
         return super.onStartCommand(intent, flags, startId)
     }
 
+    /**
+     * Memulai tracking lokasi dan menampilkan notifikasi foreground.
+     */
     @SuppressLint("NotificationPermission")
     @RequiresApi(Build.VERSION_CODES.Q)
     private fun start() {
-        // Notifikasi supaya service bisa jalan sebagai ForegroundService
+        // Notifikasi yang menandakan service aktif
         val notification = NotificationCompat.Builder(this, "location")
             .setSmallIcon(R.drawable.img_logo)
             .setContentTitle("Pelacakan Lokasi Aktif")
             .setContentText("Sedang mencatat lokasi Anda...")
-            .setOngoing(true) // nggak bisa dihapus user
+            .setOngoing(true)
 
         val notificationManager =
             getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-        // Mulai tracking lokasi setiap 10 detik
+        // Tracking lokasi setiap 10 detik
         locationClient.getLocationUpdates(10000L)
             .catch { e ->
                 Log.e("LocationService", "Error: ${e.message}")
             }
             .onEach { location ->
-
+                // Kirim lokasi ke ViewModel melalui LocationBridge
                 LocationBridge.viewModel?.updateLocation(location.latitude, location.longitude)
 
-
+                // Ambil jarak dari titik absen (kalau tersedia)
                 val distance = LocationBridge.viewModel?.currentDistance?.value ?: 100
-                Log.d("KACANGTANAH", "distance $distance")
-
                 val formattedDistance = String.format("%.0f", distance)
 
                 val latText = String.format("%.5f", location.latitude)
                 val longText = String.format("%.5f", location.longitude)
 
-                val newText = "Lokasi Anda berada di (${location.latitude}, ${location.longitude}), bberjarak ${formattedDistance}m dari titik absensi"
-
-                Log.e("KACANGTANAH", "eError: $distance")
-
+                val newText = "Lokasi Anda berada di ($latText, $longText), berjarak ${formattedDistance}m dari titik absensi"
 
                 notificationManager.notify(
                     1,
                     notification.setContentText(newText).build()
                 )
-
             }
             .launchIn(serviceScope)
 
-        // Wajib: nyalakan service sebagai Foreground supaya nggak ke-kill di background
+        // Menjalankan service sebagai foreground service agar tidak dihentikan oleh sistem
         startForeground(
             1,
             notification.build(),
@@ -107,6 +104,9 @@ class LocationService : Service() {
         )
     }
 
+    /**
+     * Mendapatkan lokasi saat ini satu kali (jika dibutuhkan).
+     */
     @SuppressLint("MissingPermission")
     private fun getCurrentLocationSimple(onResult: (Double, Double) -> Unit) {
         LocationServices.getFusedLocationProviderClient(this).lastLocation
@@ -119,24 +119,21 @@ class LocationService : Service() {
             }
     }
 
-
-
-
-
     /**
-     * Stop service dan bersihkan semua resource
+     * Menghentikan service dan notifikasi foreground.
      */
     private fun stop() {
-        stopForeground(true) // hilangkan notifikasi
-        stopSelf()           // hentikan servicenya
+        stopForeground(true)
+        stopSelf()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        serviceScope.cancel() // cancel semua job coroutine
+        // Hentikan semua coroutine saat service dihentikan
+        serviceScope.cancel()
     }
 
-    // Tidak mendukung bound service (nggak perlu binding ke komponen lain)
+    // Service ini tidak perlu di-bind, karena hanya berjalan mandiri
     override fun onBind(intent: Intent?): IBinder? = null
 
     companion object {

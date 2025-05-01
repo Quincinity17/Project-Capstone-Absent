@@ -13,8 +13,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
@@ -28,7 +26,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.absentapp.R
 import com.example.absentapp.data.model.Absence
-import com.example.absentapp.data.model.Comment
 import com.example.absentapp.ui.components.CustomTextField
 import com.example.absentapp.ui.theme.LocalAppColors
 import java.text.SimpleDateFormat
@@ -58,6 +55,7 @@ fun AbsenceDetailPage(
                 traversalIndex = 1f
             }
     ) {
+        // Header (ikon kembali dan judul halaman)
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
                 painter = painterResource(R.drawable.ic_back),
@@ -79,7 +77,7 @@ fun AbsenceDetailPage(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // ===== Post Content =====
+        // Informasi utama absensi
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -102,10 +100,18 @@ fun AbsenceDetailPage(
             }
 
             Spacer(modifier = Modifier.height(6.dp))
-            Text(absence.reason, fontSize = 14.sp, color = appColors.secondaryText)
-            Spacer(modifier = Modifier.height(2.dp))
+
             Text(
-                text = SimpleDateFormat("dd MMM yyyy • HH:mm", Locale("id", "ID")).format(Date(absence.timestamp)),
+                text = absence.reason,
+                fontSize = 14.sp,
+                color = appColors.secondaryText
+            )
+
+            Spacer(modifier = Modifier.height(2.dp))
+
+            Text(
+                text = SimpleDateFormat("dd MMM yyyy • HH:mm", Locale("id", "ID"))
+                    .format(Date(absence.timestamp)),
                 fontSize = 12.sp,
                 color = appColors.secondaryText
             )
@@ -113,7 +119,7 @@ fun AbsenceDetailPage(
 
         Divider(modifier = Modifier.padding(vertical = 16.dp))
 
-        // ===== Comment Input =====
+        // Input komentar
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -125,7 +131,9 @@ fun AbsenceDetailPage(
                 placeholder = "Tulis tanggapan Anda...",
                 keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next)
             )
+
             Spacer(modifier = Modifier.height(12.dp))
+
             Button(
                 onClick = {
                     onCommentSubmit(commentText)
@@ -141,7 +149,7 @@ fun AbsenceDetailPage(
 
         Divider(modifier = Modifier.padding(vertical = 16.dp))
 
-        // ===== Comment Section =====
+        // Komentar yang masuk
         Column(modifier = Modifier.fillMaxWidth()) {
             Text("Komentar", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = appColors.primaryText)
             Spacer(modifier = Modifier.height(8.dp))
@@ -170,7 +178,11 @@ fun AbsenceDetailPage(
                                 fontSize = 14.sp,
                                 color = appColors.primaryText
                             )
-                            Text(comment.commentText, fontSize = 14.sp, color = appColors.secondaryText)
+                            Text(
+                                text = comment.commentText,
+                                fontSize = 14.sp,
+                                color = appColors.secondaryText
+                            )
                         }
                     }
                 }
@@ -180,4 +192,3 @@ fun AbsenceDetailPage(
         Spacer(modifier = Modifier.height(24.dp))
     }
 }
-

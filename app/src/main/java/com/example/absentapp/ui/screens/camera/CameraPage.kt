@@ -13,21 +13,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.semantics.clearAndSetSemantics
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.isTraversalGroup
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.traversalIndex
+import androidx.compose.ui.semantics.*
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.absentapp.R
 import com.example.absentapp.auth.AuthViewModel
-import com.example.absentapp.ui.screens.camera.components.CameraBottomBar
-import com.example.absentapp.ui.screens.camera.components.CameraErrorDialog
-import com.example.absentapp.ui.screens.camera.components.CameraPreview
-import com.example.absentapp.ui.screens.camera.components.CameraPreviewDialog
-import com.example.absentapp.ui.screens.camera.components.ViewfinderOverlay
+import com.example.absentapp.ui.screens.camera.components.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -47,7 +39,7 @@ fun CameraPage(
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
     val navBackStackEntry by navController.currentBackStackEntryAsState()
 
-    // Tampilkan dialog error jika gagal ambil foto
+    // Tampilkan dialog error jika terjadi error saat ambil foto
     errorMessage?.let {
         CameraErrorDialog(message = it) {
             viewModel.clearError()
@@ -57,7 +49,7 @@ fun CameraPage(
         }
     }
 
-    // Bind CameraX
+    // Bind CameraX controller ke lifecycle
     LaunchedEffect(Unit) {
         try {
             controller.bindToLifecycle(lifecycleOwner)
@@ -68,15 +60,17 @@ fun CameraPage(
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
+        // Tampilkan preview kamera
         CameraPreview(controller = controller, modifier = Modifier.fillMaxSize())
 
+        // Tampilkan overlay viewfinder transparan
         ViewfinderOverlay(
             widthPercent = 0.7f,
             heightPercent = 0.6f,
             verticalOffsetPercent = -0.05f
         )
 
-        // Back Button (last in traversal)
+        // Tombol kembali di kiri atas
         IconButton(
             onClick = { navController.popBackStack() },
             modifier = Modifier
@@ -95,7 +89,7 @@ fun CameraPage(
             )
         }
 
-        // Info + BottomBar
+        // Bagian bawah: Info + Tombol kamera
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -109,6 +103,7 @@ fun CameraPage(
                     .fillMaxWidth()
                     .padding(16.dp)
             ) {
+                // Info text di atas tombol
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
@@ -135,6 +130,7 @@ fun CameraPage(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
+                // Bottom bar tombol ambil dan switch kamera
                 CameraBottomBar(
                     onTakePhoto = {
                         scope.launch {
@@ -154,7 +150,7 @@ fun CameraPage(
             }
         }
 
-        // Dialog preview
+        // Dialog konfirmasi foto setelah ambil gambar
         previewBitmap?.let { bitmap ->
             if (showPreviewDialog) {
                 CameraPreviewDialog(
@@ -167,7 +163,9 @@ fun CameraPage(
                             popUpTo("camera") { inclusive = true }
                         }
                     },
-                    onRetake = { showPreviewDialog = false }
+                    onRetake = {
+                        showPreviewDialog = false
+                    }
                 )
             }
         }

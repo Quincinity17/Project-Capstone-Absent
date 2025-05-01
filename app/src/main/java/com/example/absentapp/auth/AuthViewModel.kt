@@ -23,32 +23,33 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
-
+// ViewModel utama untuk autentikasi dan proses absensi
 class AuthViewModel : ViewModel() {
 
-    // Instance Firebase Auth & Firestore
+    // Inisialisasi Firebase Auth untuk autentikasi user
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
+
+    // Inisialisasi Firestore untuk operasi database absensi & jadwal
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
 
-    // LiveData untuk memantau status autentikasi (digunakan oleh UI)
+    // Menyimpan status autentikasi seperti Authenticated, Unauthenticated, Error
     private val _authState = MutableLiveData<AuthState>()
     val authState: LiveData<AuthState> = _authState
 
-    // StateFlow untuk menyimpan daftar waktu absen (realtime)
+    // Menyimpan data absensi dalam bentuk StateFlow untuk pemantauan real-time
     private val _absenTime = MutableStateFlow<List<AttendanceStamp>>(emptyList())
     val absenTime = _absenTime.asStateFlow()
 
+    // Penanda bahwa proses absensi sedang berlangsung
     private val _isUpdating = MutableStateFlow(false)
     val isUpdating = _isUpdating.asStateFlow()
 
-
+    // Mengecek status login user saat ViewModel dibuat
     init {
-        checkAuthState() // Cek status login saat ViewModel dibuat
+        checkAuthState()
     }
 
-    /**
-     * Ambil data absensi secara realtime dari Firestore
-     */
+    // Mengambil data absensi secara real-time dari Firestore
     fun getAbsentTime() {
         Firebase.firestore.collection("absensi")
             .addSnapshotListener { value, error ->
@@ -59,14 +60,10 @@ class AuthViewModel : ViewModel() {
             }
     }
 
-    /**
-     * Ambil data email pengguna yang login saat ini
-     */
+    // Mengambil email dari user yang sedang login
     fun getCurrentUserEmail(): String? = auth.currentUser?.email
 
-    /**
-     * Cek apakah user sedang login atau tidak
-     */
+    // Mengecek status autentikasi user dan memperbarui LiveData
     fun checkAuthState() {
         _authState.value = if (auth.currentUser == null) {
             AuthState.Unauthenticated
@@ -76,9 +73,7 @@ class AuthViewModel : ViewModel() {
         }
     }
 
-    /**
-     * Login dengan email & password
-     */
+    // Fungsi untuk login dengan email dan password
     fun login(email: String, password: String) {
         if (email.isBlank() || password.isBlank()) {
             _authState.value = AuthState.Error("Email atau password tidak boleh kosong")
@@ -87,8 +82,7 @@ class AuthViewModel : ViewModel() {
         _authState.value = AuthState.Loading
         auth.signInWithEmailAndPassword(email, password)
             .addOnSuccessListener {
-                // Login berhasil dan currentUser sudah tersedia
-                getAbsentTime()  // Perbarui data absensi jika perlu
+                getAbsentTime()
                 _authState.value = AuthState.Authenticated
             }
             .addOnFailureListener { e ->
@@ -96,9 +90,7 @@ class AuthViewModel : ViewModel() {
             }
     }
 
-    /**
-     * Register akun baru
-     */
+    // Fungsi untuk mendaftarkan akun baru
     fun signup(email: String, password: String) {
         if (email.isBlank() || password.isBlank()) {
             _authState.value = AuthState.Error("Email atau password tidak boleh kosong")
@@ -107,7 +99,6 @@ class AuthViewModel : ViewModel() {
         _authState.value = AuthState.Loading
         auth.createUserWithEmailAndPassword(email, password)
             .addOnSuccessListener {
-                // Registrasi berhasil (user otomatis sign-in)
                 getAbsentTime()
                 _authState.value = AuthState.Authenticated
             }
@@ -116,6 +107,7 @@ class AuthViewModel : ViewModel() {
             }
     }
 
+    // Mendapatkan jadwal absen untuk hari ini berdasarkan hari dalam bahasa Indonesia
     fun getTodaySchedule(onResult: (Jadwal?) -> Unit) {
         val db = FirebaseFirestore.getInstance()
         val Today = Calendar.getInstance().getDisplayName(Calendar.DAY_OF_WEEK, Calendar.LONG, Locale("id"))?.lowercase()
@@ -124,7 +116,6 @@ class AuthViewModel : ViewModel() {
             .whereEqualTo("hari", Today)
             .get()
             .addOnSuccessListener { result ->
-
                 val doc = result.documents.firstOrNull()
                 val jadwal = doc?.toObject(Jadwal::class.java)
                 onResult(jadwal)
@@ -134,6 +125,7 @@ class AuthViewModel : ViewModel() {
             }
     }
 
+    // Mendapatkan jadwal absen untuk hari esok
     fun getTomorrowSchedule(onResult: (Jadwal?) -> Unit) {
         val db = FirebaseFirestore.getInstance()
         val calendar = Calendar.getInstance().apply {
@@ -154,6 +146,7 @@ class AuthViewModel : ViewModel() {
             }
     }
 
+    // Mengambil seluruh data jadwal dari koleksi 'jadwal'
     fun getAllJadwal(onResult: (List<Jadwal>) -> Unit) {
         firestore.collection("jadwal")
             .get()
@@ -162,31 +155,24 @@ class AuthViewModel : ViewModel() {
                 onResult(jadwalList)
             }
             .addOnFailureListener { e ->
-                Log.e("JadwalFetch", "Gagal mengambil semua jadwal", e)
+//                Log.e("JadwalFetch", "Gagal mengambil semua jadwal", e)
                 onResult(emptyList())
             }
     }
 
-
-
-    /**
-     * Melakukan proses absensi dengan menyertakan foto dalam bentuk bitmap.
-     * Proses ini mencakup: encoding gambar, pengecekan jadwal, perhitungan waktu,
-     * serta menyimpan data ke Firestore.
-     */
+    // Fungsi utama untuk absen masuk/keluar dengan foto (selfie)
     fun absenWithPhoto(bitmap: Bitmap) {
         _isUpdating.value = true
         val user = auth.currentUser
         if (user == null) {
             _authState.value = AuthState.Error("User tidak ditemukan")
             getAbsentTime()
-
             return
         }
 
         _authState.value = AuthState.Loading
 
-        // Encode bitmap menjadi Base64 string
+        // Encode bitmap ke Base64 untuk disimpan di Firestore
         val encodedImage = ByteArrayOutputStream().use { baos ->
             bitmap.compress(Bitmap.CompressFormat.JPEG, 50, baos)
             Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT)
@@ -199,34 +185,28 @@ class AuthViewModel : ViewModel() {
                 return@getTodaySchedule
             }
 
-            // Hitung waktu sekarang dalam menit
             val now = Calendar.getInstance()
             val totalNow = now.get(Calendar.HOUR_OF_DAY) * 60 + now.get(Calendar.MINUTE)
 
-            // Hitung waktu masuk dan keluar dari jadwal
             val (jamMasukHour, jamMasukMinute) = sanitizeTimeInput(jadwal.jamMasuk)
-                .split(":")
-                .map { it.toIntOrNull() ?: 0 }
+                .split(":").map { it.toIntOrNull() ?: 0 }
 
             val (jamKeluarHour, jamKeluarMinute) = sanitizeTimeInput(jadwal.jamKeluar)
-                .split(":")
-                .map { it.toIntOrNull() ?: 0 }
+                .split(":").map { it.toIntOrNull() ?: 0 }
 
             val totalMasuk = jamMasukHour * 60 + jamMasukMinute
             val totalKeluar = jamKeluarHour * 60 + jamKeluarMinute
 
-            // Tentukan jenis absen dan catatan waktunya
+            // Tentukan jenis absen dan catatan waktu keterlambatan/ketepatan
             val (timeNote, type) = when {
                 totalNow <= totalMasuk -> "+ ${totalMasuk - totalNow}" to "masuk"
                 totalNow <= totalKeluar -> "- ${totalNow - totalMasuk}" to "masuk"
                 else -> {
-                    // Jika sudah lewat jam keluar, lakukan proses checkout
                     handleCheckout(user.uid, user.email ?: "", encodedImage)
                     return@getTodaySchedule
                 }
             }
 
-            // Data absen untuk check-in
             val absenData = mapOf(
                 "type" to type,
                 "uid" to user.uid,
@@ -236,7 +216,6 @@ class AuthViewModel : ViewModel() {
                 "timeNote" to timeNote
             )
 
-            // Simpan data absen
             firestore.collection("absensi")
                 .add(absenData)
                 .addOnSuccessListener {
@@ -250,18 +229,13 @@ class AuthViewModel : ViewModel() {
         }
     }
 
-    /**
-     * Proses absensi "keluar" (checkout).
-     * Mengecek apakah user sudah absen keluar sebelumnya dan hapus data yang duplikat.
-     * Juga menghitung durasi kehadiran dari absen masuk.
-     */
+    // Menangani logika checkout: cek duplikat, hitung durasi, simpan foto dan timestamp
     private fun handleCheckout(uid: String, email: String, encodedImage: String) {
         val firestoreRef = firestore.collection("absensi")
         val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         val todayKey = dateFormat.format(Date())
 
-        firestoreRef
-            .whereEqualTo("uid", uid)
+        firestoreRef.whereEqualTo("uid", uid)
             .whereEqualTo("type", "masuk")
             .get()
             .addOnSuccessListener { masukDocs ->
@@ -276,8 +250,7 @@ class AuthViewModel : ViewModel() {
                     "Hadir selama $hours jam ${minutes % 60} menit"
                 } ?: "Tidak absen masuk"
 
-                firestoreRef
-                    .whereEqualTo("uid", uid)
+                firestoreRef.whereEqualTo("uid", uid)
                     .whereEqualTo("type", "keluar")
                     .get()
                     .addOnSuccessListener { checkoutDocs ->
@@ -289,7 +262,6 @@ class AuthViewModel : ViewModel() {
                             firestoreRef.document(doc.id).delete()
                         }
 
-                        // Data checkout baru
                         val absenData = mapOf(
                             "type" to "keluar",
                             "uid" to uid,
@@ -299,13 +271,11 @@ class AuthViewModel : ViewModel() {
                             "timeNote" to durasiNote
                         )
 
-                        firestoreRef
-                            .add(absenData)
+                        firestoreRef.add(absenData)
                             .addOnSuccessListener {
                                 _authState.value = AuthState.Success("Checkout berhasil!")
                                 getAbsentTime()
                                 _isUpdating.value = false
-
                             }
                             .addOnFailureListener {
                                 _authState.value = AuthState.Error("Gagal simpan absen: ${it.message}")
@@ -315,24 +285,15 @@ class AuthViewModel : ViewModel() {
             }
     }
 
-
-    /**
-     * Logout user
-     */
+    // Fungsi untuk logout dari akun
     fun signout() {
         auth.signOut()
         _authState.value = AuthState.Unauthenticated
     }
 
-
-
-
-    /**
-     * Menghapus semua data absensi dari pengguna
-     */
+    // Menghapus semua data absensi milik user dari Firestore
     fun deleteAllAbsenceHistory() {
-        Log.d("DONAT", "kepanggil")
-
+//        Log.d("DONAT", "kepanggil")
         val userId = auth.currentUser?.uid
         if (userId != null) {
             firestore.collection("absensi")
@@ -342,10 +303,10 @@ class AuthViewModel : ViewModel() {
                     for (document in documents) {
                         firestore.collection("absensi").document(document.id).delete()
                     }
-                    Log.d("DONAT", "Semua data absensi berhasil dihapus.")
+//                    Log.d("DONAT", "Semua data absensi berhasil dihapus.")
                 }
                 .addOnFailureListener { e ->
-                    Log.e("DONAT", "Gagal menghapus data absensi", e)
+//                    Log.e("DONAT", "Gagal menghapus data absensi", e)
                 }
         }
     }

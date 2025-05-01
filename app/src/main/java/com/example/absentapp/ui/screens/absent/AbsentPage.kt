@@ -11,13 +11,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.isTraversalGroup
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.traversalIndex
+import androidx.compose.ui.semantics.*
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -47,27 +42,24 @@ fun AbsentPage(
     val bottomSheetState = rememberModalBottomSheetState()
     val showBottomSheet = remember { mutableStateOf(false) }
 
+    // Ambil semua data absensi saat pertama kali halaman dibuka
     LaunchedEffect(Unit) {
         absenceViewModel.getAllAbsences()
     }
+
+    // Ambil komentar untuk setiap absensi
     LaunchedEffect(allAbsences) {
-        // Pastikan absensi sudah dimuat
         allAbsences.forEach { absence ->
-            absence.id?.let { id ->
-                absenceViewModel.loadCommentsForAbsence(id)
-            }
+            absence.id?.let { absenceViewModel.loadCommentsForAbsence(it) }
         }
     }
 
-
     Box(modifier = Modifier.fillMaxSize()) {
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .background(appColors.primaryBackground)
-                .padding(12.dp)
                 .padding(horizontal = 12.dp, vertical = 16.dp)
                 .semantics(mergeDescendants = true) {
                     isTraversalGroup = true
@@ -76,6 +68,7 @@ fun AbsentPage(
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.Start
         ) {
+            // Judul halaman
             Text(
                 text = "Halaman Perizinan",
                 modifier = Modifier
@@ -91,6 +84,7 @@ fun AbsentPage(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Tampilkan ilustrasi jika belum ada absensi
             if (allAbsences.isEmpty()) {
                 Box(
                     modifier = Modifier
@@ -119,30 +113,28 @@ fun AbsentPage(
                     }
                 }
             } else {
+                // Tampilkan daftar absensi
                 allAbsences
                     .sortedByDescending { it.timestamp }
                     .forEach { absence ->
                         AbsenceCard(
                             absence = absence,
                             commentCount = commentsMap[absence.id]?.size ?: 0,
-
                             onClick = {
                                 try {
                                     absence.id?.let { id ->
-                                        Log.d("PATINKUNING", "Navigating to absence_detail/$id")
                                         navController.navigate("absence_detail/$id")
                                     } ?: Log.e("PATINKUNING", "Absence ID is null")
                                 } catch (e: Exception) {
                                     Log.e("PATINKUNING", "Navigation failed: ${e.message}", e)
                                 }
                             }
-
                         )
                     }
             }
         }
 
-        // Floating Action Button
+        // Tombol tambah perizinan (Floating Action Button)
         FloatingActionButton(
             onClick = { showBottomSheet.value = true },
             containerColor = appColors.primaryButtonColors,
@@ -150,18 +142,15 @@ fun AbsentPage(
                 .align(Alignment.BottomEnd)
                 .padding(8.dp)
         ) {
-
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(16.dp)
-
             ) {
                 Icon(
                     painter = painterResource(R.drawable.ic_perizinan),
                     contentDescription = "",
                     tint = Color.White,
-                    modifier = Modifier
-                        .size(16.dp)
+                    modifier = Modifier.size(16.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
@@ -171,21 +160,20 @@ fun AbsentPage(
                     color = Color.White
                 )
             }
-
-
         }
 
-        // Bottom Sheet
+        // Bottom Sheet untuk form pengajuan perizinan
         if (showBottomSheet.value) {
             ModalBottomSheet(
                 onDismissRequest = { showBottomSheet.value = false },
                 sheetState = bottomSheetState,
                 containerColor = appColors.primaryBackground
             ) {
-                Column(modifier = Modifier
-                    .padding(16.dp)
-                    .fillMaxWidth()) {
-
+                Column(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth()
+                ) {
                     Text(
                         "Masukkan alasan perizinan",
                         fontWeight = FontWeight.Bold,
@@ -201,16 +189,14 @@ fun AbsentPage(
                         label = { Text("Alasan Perizinan") },
                         modifier = Modifier.fillMaxWidth(),
                         colors = TextFieldDefaults.textFieldColors(
-                            containerColor = appColors.secondaryBackground, // background TextField
-                            focusedTextColor = appColors.primaryText,     // teks saat fokus
-                            unfocusedTextColor = Color.DarkGray, // teks saat tidak fokus
+                            containerColor = appColors.secondaryBackground,
+                            focusedTextColor = appColors.primaryText,
+                            unfocusedTextColor = Color.DarkGray,
                             focusedLabelColor = Color.Gray,
                             unfocusedLabelColor = Color.Gray,
                             cursorColor = Color.Black
                         )
                     )
-
-
 
                     Spacer(modifier = Modifier.height(12.dp))
 
@@ -220,16 +206,14 @@ fun AbsentPage(
                                 userEmail = currentEmail ?: "anonymous",
                                 reason = reasonText.value,
                                 onSuccess = {
-                                    Log.d("PERIZINAN", "Izin berhasil disimpan")
                                     reasonText.value = ""
                                     showBottomSheet.value = false
                                 },
                                 onFailure = { error ->
-                                    Log.e("PERIZINAN", "Gagal simpan izin: ${'$'}error")
+                                    Log.e("PERIZINAN", "Gagal simpan izin: $error")
                                 }
                             )
                             absenceViewModel.getAllAbsences()
-
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = appColors.primaryButtonColors),
                         modifier = Modifier.fillMaxWidth()

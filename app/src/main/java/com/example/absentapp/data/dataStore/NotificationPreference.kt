@@ -9,15 +9,18 @@ import com.example.absentapp.data.dataStore.helper.dataStore
 
 /**
  * Kelas ini menangani penyimpanan preferensi notifikasi (ON/OFF)
+ * menggunakan Jetpack DataStore Preferences.
  */
 class NotificationPreference(private val context: Context) {
 
     companion object {
+        // Key untuk menyimpan status notifikasi ke dalam DataStore
         private val NOTIFICATION_ENABLED_KEY = booleanPreferencesKey("notification_enabled")
     }
 
     /**
-     * Flow untuk memantau status notifikasi. Nilai default adalah `true`.
+     * Flow untuk memantau status notifikasi secara real-time.
+     * Default: true (notifikasi aktif)
      */
     val isNotificationEnabled: Flow<Boolean> = context.dataStore.data
         .map { preferences ->

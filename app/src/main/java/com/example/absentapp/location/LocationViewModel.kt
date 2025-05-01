@@ -16,21 +16,25 @@ import kotlinx.coroutines.flow.StateFlow
  */
 class LocationViewModel : ViewModel() {
 
+    // Menyimpan teks status lokasi yang ditampilkan ke UI
     private val _location = MutableStateFlow("Sedang mengambil lokasi Anda saat ini...")
     val location: StateFlow<String> get() = _location
 
+    // Menyimpan jarak saat ini dari lokasi referensi
     private val _currentDistance = MutableStateFlow(0f)
     val currentDistance: StateFlow<Float> get() = _currentDistance
 
+    // Status apakah sedang mengambil lokasi atau tidak
     private val _isFetchingLocation = MutableStateFlow(false)
     val isFetchingLocation: StateFlow<Boolean> get() = _isFetchingLocation
 
-    private val _distanceLimit = MutableStateFlow(20) // default 20 meter
+    // Batas maksimal jarak absensi (default: 20 meter)
+    private val _distanceLimit = MutableStateFlow(20)
     val distanceLimit: StateFlow<Int> get() = _distanceLimit
 
     /**
-     * Mengambil referensi lokasi dan batas jarak dari Firebase Realtime Database.
-     * @param onResult callback yang mengembalikan latitude, longitude, dan limit.
+     * Mengambil lokasi referensi dan batas jaraknya dari Firebase Realtime Database.
+     * Dipanggil dari updateLocation untuk menghitung jarak terhadap lokasi user.
      */
     private fun fetchReferenceLocation(onResult: (Double, Double, Int) -> Unit) {
         val ref = FirebaseDatabase.getInstance().getReference("reference_location")
@@ -53,9 +57,8 @@ class LocationViewModel : ViewModel() {
     }
 
     /**
-     * Menghitung jarak antara lokasi user dan lokasi referensi, lalu memperbarui state.
-     * @param lat latitude dari lokasi user
-     * @param long longitude dari lokasi user
+     * Mengupdate lokasi user saat ini, menghitung jarak ke lokasi referensi,
+     * lalu memperbarui nilai state.
      */
     fun updateLocation(lat: Double, long: Double) {
         _isFetchingLocation.value = true
@@ -67,7 +70,6 @@ class LocationViewModel : ViewModel() {
             Log.d("KACANGTANAH", "lat $lat ; long: $long ; refLat: $refLat ; refLng: $refLng")
             Log.e("KACANGTANAH", "Error: $distance")
 
-
             _location.value = "Lokasi Anda berada di (%.5f, %.5f), berjarakk ${formattedDistance}m dari titik absensi".format(lat, long)
             _currentDistance.value = distance
             _distanceLimit.value = limit
@@ -76,8 +78,8 @@ class LocationViewModel : ViewModel() {
     }
 
     /**
-     * Memperbarui batas maksimal jarak absensi di Firebase dan local state.
-     * @param newLimit nilai jarak maksimal baru (dalam meter)
+     * Memperbarui batas jarak maksimal (misalnya 50m) untuk absensi,
+     * dan menyimpannya ke Firebase.
      */
     fun updateDistanceLimit(newLimit: Int) {
         val ref = FirebaseDatabase.getInstance().getReference("reference_location/Limit")
@@ -90,8 +92,9 @@ class LocationViewModel : ViewModel() {
                 Log.e("LocationViewModel", "Failed to update limit: ${it.message}")
             }
     }
+
     /**
-     * Memperbarui latitude dan longitude di Firebase berdasarkan lokasi user saat ini.
+     * Menyimpan lokasi user saat ini sebagai lokasi referensi baru di Firebase.
      */
     fun updateReferenceLocation(context: Context) {
         getCurrentLocationSimple(context) { lat, long ->
@@ -114,7 +117,10 @@ class LocationViewModel : ViewModel() {
         }
     }
 
-
+    /**
+     * Mengambil lokasi terakhir user dari FusedLocationProviderClient secara langsung.
+     * Biasanya dipakai untuk update lokasi referensi.
+     */
     @SuppressLint("MissingPermission")
     fun getCurrentLocationSimple(context: Context, onResult: (Double, Double) -> Unit) {
         val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
@@ -127,5 +133,4 @@ class LocationViewModel : ViewModel() {
                 }
             }
     }
-
 }

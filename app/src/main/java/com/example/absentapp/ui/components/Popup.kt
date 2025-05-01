@@ -10,7 +10,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.draw.clip
@@ -21,7 +20,10 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.absentapp.ui.theme.LocalAppColors
 
-
+/**
+ * Komponen popup kustom reusable.
+ * Menampilkan judul, konten gambar, dan 1–2 tombol aksi.
+ */
 @Composable
 fun Popup(
     title: String,
@@ -34,7 +36,6 @@ fun Popup(
 ) {
     val appColors = LocalAppColors.current
 
-
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -42,10 +43,9 @@ fun Popup(
             .padding(18.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Header
+        // Header: Judul dan tombol tutup
         Row(
-            modifier = Modifier
-                .fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
@@ -66,19 +66,17 @@ fun Popup(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Image area
+        // Area untuk menampilkan gambar/konten
         Box(
             modifier = Modifier
-                .fillMaxWidth(1f)
+                .fillMaxWidth()
                 .clip(RoundedCornerShape(16.dp)),
             contentAlignment = Alignment.Center
         ) {
             imageContent()
         }
 
-
-
-        // First button
+        // Tombol pertama (utama)
         if (!button1Text.isNullOrBlank() && onButton1Click != null) {
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -96,7 +94,7 @@ fun Popup(
             Spacer(modifier = Modifier.height(12.dp))
         }
 
-        // Second button
+        // Tombol kedua (opsional, biasanya batal)
         if (!button2Text.isNullOrBlank() && onButton2Click != null) {
             Button(
                 onClick = onButton2Click,
@@ -113,6 +111,9 @@ fun Popup(
     }
 }
 
+/**
+ * Preview untuk komponen Popup di Android Studio Preview.
+ */
 @Preview(showBackground = true)
 @Composable
 fun PreviewPopup() {
@@ -138,4 +139,3 @@ fun PreviewPopup() {
         )
     }
 }
-

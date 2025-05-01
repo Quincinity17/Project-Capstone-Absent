@@ -85,7 +85,7 @@ fun scheduleAllWeekAbsenAlarms(context: Context) {
                 pendingIntent
             )
 
-            Log.d("RENDANGAYAM", "Alarm disetel: $hari jam $reminderTime → $triggerMillis")
+//            Log.d("RENDANGAYAM", "Alarm disetel: $hari jam $reminderTime → $triggerMillis")
         }
     }
 }

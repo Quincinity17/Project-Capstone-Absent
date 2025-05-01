@@ -17,6 +17,11 @@ import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.unit.dp
 import com.example.absentapp.R
 
+/**
+ * Komponen bottom bar kamera yang terdiri dari:
+ * - Tombol tengah untuk mengambil foto
+ * - Tombol kanan untuk mengganti kamera (depan/belakang)
+ */
 @Composable
 fun CameraBottomBar(
     onTakePhoto: () -> Unit,
@@ -25,13 +30,14 @@ fun CameraBottomBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 24.dp),
+            .padding(bottom = 24.dp), // Padding bawah untuk posisi lebih tinggi dari tepi layar
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Spacer(modifier = Modifier.width(56.dp)) // kiri kosong
+        // Spacer kiri untuk memberi jarak dan simetri (tidak ada tombol di kiri)
+        Spacer(modifier = Modifier.width(56.dp))
 
-        // Tengah: Tombol Ambil Foto
+        // Tombol ambil foto di tengah (besar, fokus utama)
         IconButton(
             onClick = onTakePhoto,
             modifier = Modifier
@@ -40,7 +46,7 @@ fun CameraBottomBar(
                 .background(Color.White)
                 .semantics {
                     contentDescription = "Ambil foto"
-                    traversalIndex = 1f // setelah info text
+                    traversalIndex = 1f // urutan fokus TalkBack
                 }
         ) {
             Icon(
@@ -51,7 +57,7 @@ fun CameraBottomBar(
             )
         }
 
-        // Kanan: Tombol Switch Kamera
+        // Tombol untuk mengganti kamera (kanan)
         IconButton(
             onClick = onSwitchCamera,
             modifier = Modifier

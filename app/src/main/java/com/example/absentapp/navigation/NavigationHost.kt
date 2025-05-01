@@ -118,7 +118,6 @@ fun NavigationHost(
             val absence = absenceViewModel.getAbsenceById(absenceId)
             val comments = absenceViewModel.commentsMap.value[absenceId] ?: emptyList()
 
-            // Load komentar jika belum
             LaunchedEffect(absenceId) {
                 absenceViewModel.loadCommentsForAbsence(absenceId)
             }
