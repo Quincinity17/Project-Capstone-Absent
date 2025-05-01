@@ -32,7 +32,7 @@
 <p align="center">
   <img src="screenshots/lightmode/pengaturan_logout.png" alt="Logout" width="22%" style="display:inline-block;" />
   <img src="screenshots/lightmode/perizinan.png" alt="Perizinan" width="22%" style="display:inline-block;" />
-  <img src="screenshots/lightmode/perizinan_detail1.png" alt="Detail Perizinan" width="22%" style="display:inline-block;" />
+  <img src="screenshots/lightmode/perizinan_detail.png" alt="Detail Perizinan" width="22%" style="display:inline-block;" />
   <img src="screenshots/lightmode/riwayat.png" alt="Riwayat" width="22%" style="display:inline-block;" />
 </p>
 
