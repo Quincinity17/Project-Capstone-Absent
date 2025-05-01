@@ -26,7 +26,15 @@
 
 ### 🌙 Dark Mode
 <p align="center">
-  <img src="screenshots/darkmode/homepage.png" alt="Beranda (Dark Mode)" width="45%" />
-  <img src="screenshots/darkmode/homepage_camera.png" alt="Kamera (Dark Mode)" width="45%" />
+  <img src="screenshots/darkmode/homepage.png" alt="Beranda (Dark Mode)" width="25%" />
+  <img src="screenshots/darkmode/homepage_camera.png" alt="Kamera (Dark Mode)" width="25%" />
+  <img src="screenshots/darkmode/homepage_camera_konfirmasi.png" alt="Kamera (Dark Mode)" width="25%" />
+  <img src="screenshots/darkmode/pengaturan.png" alt="Kamera (Dark Mode)" width="25%" />
+</p>
+<p align="center">
+  <img src="screenshots/darkmode/pengaturan_logout.png" alt="Beranda (Dark Mode)" width="25%" />
+  <img src="screenshots/darkmode/perizinan.png" alt="Kamera (Dark Mode)" width="25%" />
+  <img src="screenshots/darkmode/perizinan_detail.png" alt="Kamera (Dark Mode)" width="25%" />
+  <img src="screenshots/darkmode/riwayat_bukti.png" alt="Kamera (Dark Mode)" width="25%" />
 </p>
 
